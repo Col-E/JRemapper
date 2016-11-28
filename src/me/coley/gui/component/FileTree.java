@@ -11,9 +11,9 @@ import javax.swing.tree.DefaultTreeModel;
 import io.github.bmf.JarReader;
 import io.github.bmf.util.mapping.ClassMapping;
 import me.coley.Program;
+import me.coley.SwingUtils;
 import me.coley.gui.JavaCellRenderer;
 import me.coley.gui.listener.FileSelectionListener;
-import meme.SwingUtils;
 
 @SuppressWarnings("serial")
 public class FileTree extends JPanel {
@@ -76,13 +76,19 @@ public class FileTree extends JPanel {
 		generateTreePath(root, newPath, mapping, model);
 	}
 
-	private MappingTreeNode removeTreePath(MappingTreeNode parent, ArrayList<String> dirPath, DefaultTreeModel model) {
-		MappingTreeNode up = null;
+	/**
+	 * Removes a path from a given parent node. Also updates the given model.
+	 * 
+	 * @param parent
+	 * @param dirPath
+	 * @param model
+	 */
+	private void removeTreePath(MappingTreeNode parent, ArrayList<String> dirPath, DefaultTreeModel model) {
 		while (dirPath.size() > 0) {
 			String section = dirPath.get(0);
 			MappingTreeNode node = parent.getChild(section);
 			// Create child if it doesn't exist.
-			up = parent;
+			MappingTreeNode up = parent;
 			if (dirPath.size() == 1) {
 				// update model
 				model.removeNodeFromParent(node);
@@ -96,17 +102,23 @@ public class FileTree extends JPanel {
 			parent = node;
 			dirPath.remove(0);
 		}
-		return up;
 	}
 
-	private MappingTreeNode generateTreePath(MappingTreeNode parent, ArrayList<String> dirPath, ClassMapping mapping, DefaultTreeModel model) {
-		MappingTreeNode newDir = null;
+	/**
+	 * Adds a path to a given parent node. Also updates the given model.
+	 * 
+	 * @param parent
+	 * @param dirPath
+	 * @param mapping
+	 * @param model
+	 */
+	private void generateTreePath(MappingTreeNode parent, ArrayList<String> dirPath, ClassMapping mapping, DefaultTreeModel model) {
 		while (dirPath.size() > 0) {
 			String section = dirPath.get(0);
 			MappingTreeNode node;
 			// Create child if it doesn't exist.
 			if ((node = parent.getChild(section)) == null) {
-				newDir = new MappingTreeNode(section, dirPath.size() == 1 ? mapping : null);
+				MappingTreeNode newDir = new MappingTreeNode(section, dirPath.size() == 1 ? mapping : null);
 				parent.addChild(section, newDir);
 				parent.add(newDir);
 				// update model
@@ -116,6 +128,5 @@ public class FileTree extends JPanel {
 			parent = node;
 			dirPath.remove(0);
 		}
-		return newDir;
 	}
 }

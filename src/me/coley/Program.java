@@ -28,6 +28,10 @@ public class Program {
 	 * File chooser for selecting jars.
 	 */
 	private JFileChooser fileChooser;
+	/**
+	 * Current class in text area.
+	 */
+	private ClassMapping currentClass;
 
 	/**
 	 * Displays the GUI.
@@ -88,6 +92,15 @@ public class Program {
 	}
 
 	/**
+	 * Returns the current ClassMapping of the class in the text area.
+	 * 
+	 * @return
+	 */
+	public ClassMapping getCurrentClass() {
+		return currentClass;
+	}
+
+	/**
 	 * Called when a file is loaded.
 	 * 
 	 * @param file
@@ -131,32 +144,20 @@ public class Program {
 			String originalName = clazz.name.original;
 			final byte[] bytes = ClassWriter.write(jar.getClassEntries().get(originalName));
 			if (bytes == null) {
-				
+				// Failed to decompile
+				window.getSourceArea().setText("Error: Failed to get class bytes");
+			} else {
+				// Update
+				this.currentClass = clazz;
+				// Decompile using CFR, send text to the text-area.
+				PluginRunner pluginRunner = new PluginRunner(CFRSetting.getSettings(), new CFRSourceImpl(bytes));
+				String decomp = pluginRunner.getDecompilationFor(originalName);
+				window.getSourceArea().setText(decomp);
 			}
-			PluginRunner pluginRunner = new PluginRunner(CFRSetting.getSettings(), new ClassFileSource() {
-				@Override
-				public void informAnalysisRelativePathDetail(String s, String s1) {
-					System.out.println("Relative: " + s + " " + s1);
-				}
-
-				@Override
-				public Collection<String> addJar(String s) {
-					throw new UnsupportedOperationException("Return paths of all classfiles in jar.");
-				}
-
-				@Override
-				public String getPossiblyRenamedPath(String s) {
-					return s;
-				}
-
-				@Override
-				public Pair<byte[], String> getClassFileContent(String s) throws IOException {
-					return Pair.make(bytes, s);
-				}
-			});
-			 pluginRunner.getDecompilationFor(originalName);
 		} catch (Exception e) {
-			e.printStackTrace();
+			// Failed to decompile
+			window.getSourceArea().setText(e.toString());
 		}
 	}
+
 }

@@ -17,7 +17,7 @@ public class FileSelectionListener implements TreeSelectionListener {
 	@Override
 	public void valueChanged(TreeSelectionEvent e) {
 		TreeNode node = (TreeNode) e.getPath().getLastPathComponent();
-		if (node.isLeaf()){
+		if (node.isLeaf() && (node instanceof MappingTreeNode)){
 			MappingTreeNode mtn = (MappingTreeNode) node;
 			callback.onClassSelect(mtn.getMapping());
 		}
