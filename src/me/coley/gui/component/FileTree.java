@@ -3,8 +3,6 @@ package me.coley.gui.component;
 import java.awt.BorderLayout;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
-
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
@@ -13,17 +11,16 @@ import javax.swing.tree.DefaultTreeModel;
 import io.github.bmf.JarReader;
 import io.github.bmf.util.mapping.ClassMapping;
 import me.coley.Program;
-import me.coley.gui.Gui;
 import me.coley.gui.JavaCellRenderer;
+import me.coley.gui.listener.FileSelectionListener;
 import meme.SwingUtils;
 
 @SuppressWarnings("serial")
 public class FileTree extends JPanel {
-	private final JTree tree = new JTree();
+	private final JTree tree = new JTree(new String[] { "Open a jar" });
 	private final JScrollPane scrollTree = new JScrollPane(tree);
 	private final Program callback;
 
-	// TODO: See if editing JTree is faster than 100% regeneration
 	public FileTree(Program program) {
 		this.callback = program;
 		//
@@ -43,6 +40,7 @@ public class FileTree extends JPanel {
 		String jarName = read.getFile().getName();
 		MappingTreeNode root = new MappingTreeNode(jarName, null);
 		DefaultTreeModel model = new DefaultTreeModel(root);
+		tree.addTreeSelectionListener(new FileSelectionListener(callback));
 		tree.setModel(model);
 		// Iterate classes
 		for (String className : read.getClassEntries().keySet()) {
@@ -73,46 +71,51 @@ public class FileTree extends JPanel {
 		//
 		MappingTreeNode root = (MappingTreeNode) tree.getModel().getRoot();
 		// Remove path
-		removeTreePath(root,  curPath, model);
+		removeTreePath(root, curPath, model);
 		// Add path back
 		generateTreePath(root, newPath, mapping, model);
-		// Refresh
-		model.reload(root);
 	}
 
-	private void removeTreePath(MappingTreeNode parent, ArrayList<String> dirPath, DefaultTreeModel model) {
+	private MappingTreeNode removeTreePath(MappingTreeNode parent, ArrayList<String> dirPath, DefaultTreeModel model) {
+		MappingTreeNode up = null;
 		while (dirPath.size() > 0) {
 			String section = dirPath.get(0);
 			MappingTreeNode node = parent.getChild(section);
 			// Create child if it doesn't exist.
+			up = parent;
 			if (dirPath.size() == 1) {
-				node.removeFromParent();
-				MappingTreeNode up = parent;
-				while (up.isLeaf() && up.getMapping() == null){
+				// update model
+				model.removeNodeFromParent(node);
+				while (up.isLeaf() && up.getMapping() == null) {
 					String lastSection = up.toString();
 					up = (MappingTreeNode) up.getParent();
-					up.remove(up.getChild(lastSection));
+					// update model
+					model.removeNodeFromParent(up.getChild(lastSection));
 				}
-				return;
 			}
 			parent = node;
 			dirPath.remove(0);
 		}
+		return up;
 	}
 
-	private void generateTreePath(MappingTreeNode parent, ArrayList<String> dirPath, ClassMapping mapping, DefaultTreeModel model) {
+	private MappingTreeNode generateTreePath(MappingTreeNode parent, ArrayList<String> dirPath, ClassMapping mapping, DefaultTreeModel model) {
+		MappingTreeNode newDir = null;
 		while (dirPath.size() > 0) {
 			String section = dirPath.get(0);
 			MappingTreeNode node;
 			// Create child if it doesn't exist.
 			if ((node = parent.getChild(section)) == null) {
-				MappingTreeNode newDir = new MappingTreeNode(section, dirPath.size() == 1 ? mapping : null);
+				newDir = new MappingTreeNode(section, dirPath.size() == 1 ? mapping : null);
 				parent.addChild(section, newDir);
 				parent.add(newDir);
+				// update model
+				model.nodesWereInserted(parent, new int[] { parent.getIndex(newDir) });
 				node = newDir;
 			}
 			parent = node;
 			dirPath.remove(0);
 		}
+		return newDir;
 	}
 }

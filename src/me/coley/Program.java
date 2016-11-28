@@ -2,12 +2,19 @@ package me.coley;
 
 import java.awt.EventQueue;
 import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
 
 import javax.swing.JFileChooser;
-import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import org.benf.cfr.reader.PluginRunner;
+import org.benf.cfr.reader.api.ClassFileSource;
+import org.benf.cfr.reader.bytecode.analysis.parse.utils.Pair;
+
+import io.github.bmf.ClassWriter;
 import io.github.bmf.JarReader;
+import io.github.bmf.util.mapping.ClassMapping;
 import me.coley.gui.Gui;
 
 public class Program {
@@ -88,11 +95,11 @@ public class Program {
 	 */
 	public void onFileSelect(File file) {
 		// Load jar file into BMF
-		// Set up mappings 
+		// Set up mappings
 		jar = new JarReader(file, true, true);
 		//
 		window.getFileTree().setup(jar);
-		
+
 	}
 
 	/**
@@ -112,5 +119,44 @@ public class Program {
 	 */
 	public void onSaveJar(File selectedFile) {
 		// TODO: stub
+	}
+
+	/**
+	 * Called when a class in the file tree is selected.
+	 * 
+	 * @param mapping
+	 */
+	public void onClassSelect(ClassMapping clazz) {
+		try {
+			String originalName = clazz.name.original;
+			final byte[] bytes = ClassWriter.write(jar.getClassEntries().get(originalName));
+			if (bytes == null) {
+				
+			}
+			PluginRunner pluginRunner = new PluginRunner(CFRSetting.getSettings(), new ClassFileSource() {
+				@Override
+				public void informAnalysisRelativePathDetail(String s, String s1) {
+					System.out.println("Relative: " + s + " " + s1);
+				}
+
+				@Override
+				public Collection<String> addJar(String s) {
+					throw new UnsupportedOperationException("Return paths of all classfiles in jar.");
+				}
+
+				@Override
+				public String getPossiblyRenamedPath(String s) {
+					return s;
+				}
+
+				@Override
+				public Pair<byte[], String> getClassFileContent(String s) throws IOException {
+					return Pair.make(bytes, s);
+				}
+			});
+			 pluginRunner.getDecompilationFor(originalName);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }
