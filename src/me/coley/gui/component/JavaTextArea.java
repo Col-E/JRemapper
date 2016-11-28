@@ -8,16 +8,17 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
 
+import me.coley.Program;
 import me.coley.gui.Gui;
 
 @SuppressWarnings("serial")
 public class JavaTextArea extends JPanel {
 	private final RSyntaxTextArea textArea = new RSyntaxTextArea(25, 70);
 	private final RTextScrollPane scrollText = new RTextScrollPane(textArea);
-	private final Gui callback;
+	private final Program callback;
 
-	public JavaTextArea(Gui callback) {
-		this.callback = callback;
+	public JavaTextArea(Program program) {
+		this.callback = program;
 		//
 		textArea.setCaretPosition(0);
 		textArea.requestFocusInWindow();

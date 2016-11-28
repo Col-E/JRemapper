@@ -6,6 +6,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
 
+import me.coley.Program;
 import me.coley.gui.Gui;
 import me.coley.gui.JavaCellRenderer;
 
@@ -13,10 +14,10 @@ import me.coley.gui.JavaCellRenderer;
 public class FileTree extends JPanel {
 	private final JTree tree = new JTree();
 	private final JScrollPane scrollTree = new JScrollPane(tree);
-	private final Gui callback;
+	private final Program callback;
 
-	public FileTree(Gui callback) {
-		this.callback = callback;
+	public FileTree(Program program) {
+		this.callback = program;
 		//
 		tree.setCellRenderer(new JavaCellRenderer());
 		//
