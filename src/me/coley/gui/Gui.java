@@ -1,13 +1,7 @@
 package me.coley.gui;
 
-import java.awt.EventQueue;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
 import javax.swing.JFrame;
 import javax.swing.JSplitPane;
-import javax.swing.UIManager;
-
 import java.awt.BorderLayout;
 
 import me.coley.Program;
@@ -22,8 +16,8 @@ import javax.swing.JMenuItem;
 public class Gui {
 	private final Program callback;
 	private final JFrame frmCfrRemapper = new JFrame();
-	private FileTree tree;
-	private JavaTextArea textArea;
+	private FileTree fileTree;
+	private JavaTextArea sourceArea;
 
 	/**
 	 * Create the application.
@@ -45,14 +39,14 @@ public class Gui {
 			frmCfrRemapper.getContentPane().add(spMain, BorderLayout.CENTER);
 		}
 		// Setting up the file tree for jar layouts
-		tree = new FileTree(callback);
+		fileTree = new FileTree(callback);
 		{
-			spMain.setLeftComponent(tree);
+			spMain.setLeftComponent(fileTree);
 		}
 		// Setting up the text area
-		textArea = new JavaTextArea(callback);
+		sourceArea = new JavaTextArea(callback);
 		{
-			spMain.setRightComponent(textArea);
+			spMain.setRightComponent(sourceArea);
 		}
 		// Setting up the menu
 		JMenuBar menuBar = new JMenuBar();
@@ -67,7 +61,7 @@ public class Gui {
 			JMenuItem mntmSaveJar = new JMenuItem("Jar");
 			JMenu mnCfr = new JMenu("CFR");
 			mntmOpenJar.addActionListener(new ActionChooseFile(callback));
-			mntmSaveMap.addActionListener(new ActionSaveAsMapping (callback));
+			mntmSaveMap.addActionListener(new ActionSaveAsMapping(callback));
 			mntmSaveJar.addActionListener(new ActionSaveAsJar(callback));
 			mnOpen.add(mntmOpenJar);
 			mnOpen.add(mntmOpenMap);
@@ -85,6 +79,14 @@ public class Gui {
 	 */
 	public void display() {
 		frmCfrRemapper.setVisible(true);
+	}
+
+	public FileTree getFileTree() {
+		return fileTree;
+	}
+
+	public JavaTextArea getSourceArea() {
+		return sourceArea;
 	}
 
 }

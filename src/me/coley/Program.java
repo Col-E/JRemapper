@@ -7,10 +7,12 @@ import javax.swing.JFileChooser;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import io.github.bmf.JarReader;
 import me.coley.gui.Gui;
 
 public class Program {
 
+	private JarReader jar;
 	/**
 	 * GUI
 	 */
@@ -85,7 +87,12 @@ public class Program {
 	 *            Jar loaded.
 	 */
 	public void onFileSelect(File file) {
-		// TODO: stub
+		// Load jar file into BMF
+		// Set up mappings 
+		jar = new JarReader(file, true, true);
+		//
+		window.getFileTree().setup(jar);
+		
 	}
 
 	/**
@@ -94,6 +101,7 @@ public class Program {
 	 * @param selectedFile
 	 */
 	public void onSaveMappings(File selectedFile) {
+		window.getFileTree().update(jar, "io/github/bmf/ClassNode", "dank/meme/NewNodeName");
 		// TODO: stub
 	}
 
