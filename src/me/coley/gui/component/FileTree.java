@@ -11,9 +11,9 @@ import javax.swing.tree.DefaultTreeModel;
 import io.github.bmf.JarReader;
 import io.github.bmf.util.mapping.ClassMapping;
 import me.coley.Program;
-import me.coley.SwingUtils;
 import me.coley.gui.JavaCellRenderer;
 import me.coley.gui.listener.FileSelectionListener;
+import me.coley.util.SwingUtil;
 
 @SuppressWarnings("serial")
 public class FileTree extends JPanel {
@@ -52,7 +52,7 @@ public class FileTree extends JPanel {
 			// Create directory of nodes
 			generateTreePath(root, dirPath, mapping, model);
 		}
-		model.setRoot(SwingUtils.sort(root));
+		model.setRoot(SwingUtil.sort(root));
 	}
 
 	/**
@@ -86,6 +86,7 @@ public class FileTree extends JPanel {
 	private void removeTreePath(MappingTreeNode parent, ArrayList<String> dirPath, DefaultTreeModel model) {
 		while (dirPath.size() > 0) {
 			String section = dirPath.get(0);
+			System.out.println("---" + section);
 			MappingTreeNode node = parent.getChild(section);
 			// Create child if it doesn't exist.
 			MappingTreeNode up = parent;

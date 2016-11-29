@@ -15,13 +15,18 @@ import org.fife.ui.rtextarea.RTextScrollPane;
 import me.coley.LineContext;
 import me.coley.Program;
 import me.coley.gui.listener.JavaCaretListener;
+import me.coley.gui.listener.JavaKeyListener;
+import me.coley.gui.listener.JavaMouseListener;
 
 @SuppressWarnings("serial")
 public class JavaTextArea extends JPanel {
-	private final static List<String> fuck = Arrays.asList("for ", "try ", "do ", "if ", "catch ", "while ");
+	private final static List<String> INVALID_CONTENT = Arrays.asList("for ", "try ", "do ", "if ", "catch ", "while ");
 	private final RSyntaxTextArea textArea = new RSyntaxTextArea(25, 70);
 	private final RTextScrollPane scrollText = new RTextScrollPane(textArea);
 	private final Program callback;
+	private final JavaCaretListener caret;
+	private final JavaMouseListener mouse;
+	private final JavaKeyListener keys;
 	private List<LineContext> context;
 	/**
 	 * If true, moving mouse around is selecting new things. Set to false while
@@ -36,11 +41,17 @@ public class JavaTextArea extends JPanel {
 		textArea.requestFocusInWindow();
 		textArea.setMarkOccurrences(true);
 		textArea.setClearWhitespaceLinesEnabled(false);
-		textArea.setEditable(true);
+		textArea.setEditable(false);
 		textArea.setAntiAliasingEnabled(true);
 		textArea.setCodeFoldingEnabled(true);
 		textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
-		textArea.addCaretListener(new JavaCaretListener(callback, this));
+		//
+		caret = new JavaCaretListener(callback, this);
+		mouse = new JavaMouseListener(callback, this);
+		keys = new JavaKeyListener(callback, this);
+		textArea.addCaretListener(caret);
+		textArea.addMouseListener(mouse);
+		textArea.addKeyListener(keys);
 		//
 		setLayout(new BorderLayout());
 		add(scrollText, BorderLayout.CENTER);
@@ -102,7 +113,8 @@ public class JavaTextArea extends JPanel {
 				}
 			} else if (!line.endsWith(";") && line.contains("(") && line.contains(")") && line.endsWith("{")) {
 				boolean isBody = false;
-				for (String x : fuck) {
+				// Detect control flow being false-pos for method declaration
+				for (String x : INVALID_CONTENT) {
 					if (line.contains(x)) {
 						isBody = true;
 						break;
@@ -124,8 +136,6 @@ public class JavaTextArea extends JPanel {
 						context.add(LineContext.METHOD_DEC);
 					}
 				}
-				// Possibly method declaration
-				// Else method body
 			} else {
 				context.add(LineContext.UNKNOWN);
 			}
@@ -153,6 +163,15 @@ public class JavaTextArea extends JPanel {
 	}
 
 	/**
+	 * Sets the text area's editable status.
+	 * 
+	 * @param vslue
+	 */
+	public void setEditable(boolean vslue) {
+		this.textArea.setEditable(vslue);
+	}
+
+	/**
 	 * Returns the given context of a line.
 	 * 
 	 * @param line
@@ -161,4 +180,41 @@ public class JavaTextArea extends JPanel {
 	public LineContext getContext(int line) {
 		return line < context.size() ? context.get(line) : LineContext.UNKNOWN;
 	}
+
+	/**
+	 * Returns the position of the caret in the text area.
+	 * 
+	 * @return
+	 */
+	public int getCaretPosition() {
+		return textArea.getCaretPosition();
+	}
+
+	/**
+	 * Returns the text area's caret listener.
+	 * 
+	 * @return
+	 */
+	public JavaCaretListener getCaretListener() {
+		return caret;
+	}
+
+	/**
+	 * Returns the text area's mouse listener.
+	 * 
+	 * @return
+	 */
+	public JavaMouseListener getMouseListener() {
+		return mouse;
+	}
+
+	/**
+	 * Returns the text area's key listener.
+	 * 
+	 * @return
+	 */
+	public JavaKeyListener getKeyListener() {
+		return keys;
+	}
+
 }

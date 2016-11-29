@@ -2,16 +2,10 @@ package me.coley;
 
 import java.awt.EventQueue;
 import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.benf.cfr.reader.PluginRunner;
-import org.benf.cfr.reader.api.ClassFileSource;
-import org.benf.cfr.reader.bytecode.analysis.parse.utils.Pair;
-
 import io.github.bmf.ClassWriter;
 import io.github.bmf.JarReader;
 import io.github.bmf.util.mapping.ClassMapping;
@@ -83,24 +77,6 @@ public class Program {
 	}
 
 	/**
-	 * Returns the GUI.
-	 * 
-	 * @return
-	 */
-	public final Gui getWindow() {
-		return window;
-	}
-
-	/**
-	 * Returns the current ClassMapping of the class in the text area.
-	 * 
-	 * @return
-	 */
-	public ClassMapping getCurrentClass() {
-		return currentClass;
-	}
-
-	/**
 	 * Called when a file is loaded.
 	 * 
 	 * @param file
@@ -121,7 +97,6 @@ public class Program {
 	 * @param selectedFile
 	 */
 	public void onSaveMappings(File selectedFile) {
-		window.getFileTree().update(jar, "io/github/bmf/ClassNode", "dank/meme/NewNodeName");
 		// TODO: stub
 	}
 
@@ -132,6 +107,13 @@ public class Program {
 	 */
 	public void onSaveJar(File selectedFile) {
 		// TODO: stub
+	}
+	
+	public void updateTreePath(String original, String renamed){
+		//"io/github/bmf/ClassNode"
+		//"dank/meme/NewNodeName"
+		window.getFileTree().update(jar, original, renamed);
+
 	}
 
 	/**
@@ -160,4 +142,30 @@ public class Program {
 		}
 	}
 
+	/**
+	 * Returns the GUI.
+	 * 
+	 * @return
+	 */
+	public final Gui getWindow() {
+		return window;
+	}
+
+	/**
+	 * Returns the current ClassMapping of the class in the text area.
+	 * 
+	 * @return
+	 */
+	public ClassMapping getCurrentClass() {
+		return currentClass;
+	}
+
+	/**
+	 * Returns the JarReader.
+	 * 
+	 * @return
+	 */
+	public JarReader getJarReader() {
+		return jar;
+	}
 }

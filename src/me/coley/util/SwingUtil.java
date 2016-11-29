@@ -1,4 +1,4 @@
-package me.coley;
+package me.coley.util;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -7,7 +7,7 @@ import java.util.List;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 
-public class SwingUtils {
+public class SwingUtil {
 	/**
 	 * Method by Adrian: [
 	 * <a href="http://stackoverflow.com/a/15704264/5620200">StackOverflow</a> ]
