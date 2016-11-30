@@ -13,8 +13,8 @@ public class Options {
 
 	public Options() {
 		// Default values
-		options.put(REGEX_REPLACE_CLASSES, true);
-		options.put(REGEX_REPLACE_MEMBERS, true);
+		options.put(REGEX_REPLACE_CLASSES, false);
+		options.put(REGEX_REPLACE_MEMBERS, false);
 	}
 
 	public void set(String setting, boolean selected) {

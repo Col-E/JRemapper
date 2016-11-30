@@ -48,7 +48,7 @@ public class JavaKeyListener implements KeyListener {
 				// Update text area.
 				if (reg) {
 					String valueCut = cm.name.getValue().substring(cm.name.getValue().lastIndexOf("/") + 1);
-					text.setText(text.getText().replaceAll("\\b(" + origCut + ")\\b", valueCut));
+					text.setText(text.getCaretListener().getLastText().replaceAll("\\b(" + origCut + ")\\b", valueCut));
 				} else {
 					callback.onClassSelect(callback.getCurrentClass());
 				}

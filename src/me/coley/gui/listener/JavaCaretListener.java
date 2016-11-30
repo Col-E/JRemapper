@@ -18,7 +18,7 @@ public class JavaCaretListener implements CaretListener {
 	private int selectedLine;
 	private LineContext lineContext;
 	private String lineContent;
-	private String word;
+	private String word, lastText;
 	private ClassMapping mappedClass;
 	private MemberMapping mappedMember;
 
@@ -50,12 +50,13 @@ public class JavaCaretListener implements CaretListener {
 		this.mappedMember = null;
 		if (word.length() > 0) {
 			this.word = word;
-			// Todo: Optimize by better context handling 
+			// Todo: Optimize by better context handling
 			// (2D instead of 3D)
 			this.mappedClass = detectClass();
 			if (this.mappedClass == null) {
 				this.mappedMember = detectMember();
 			}
+			this.lastText = text.getText();
 			// Enable interaction
 			text.setEditable(true);
 		} else {
@@ -125,6 +126,16 @@ public class JavaCaretListener implements CaretListener {
 	 */
 	public String getLineContent() {
 		return lineContent;
+	}
+
+	/**
+	 * Returns the text of the TextArea at the time the last mapping was
+	 * detected.
+	 * 
+	 * @return
+	 */
+	public String getLastText() {
+		return lastText;
 	}
 
 	/**
