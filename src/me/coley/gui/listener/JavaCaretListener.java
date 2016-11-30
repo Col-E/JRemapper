@@ -6,6 +6,7 @@ import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 
 import io.github.bmf.util.mapping.ClassMapping;
+import io.github.bmf.util.mapping.MemberMapping;
 import me.coley.LineContext;
 import me.coley.Program;
 import me.coley.gui.component.JavaTextArea;
@@ -18,7 +19,8 @@ public class JavaCaretListener implements CaretListener {
 	private LineContext lineContext;
 	private String lineContent;
 	private String word;
-	private ClassMapping selectedMapping;
+	private ClassMapping mappedClass;
+	private MemberMapping mappedMember;
 
 	public JavaCaretListener(Program callback, JavaTextArea text) {
 		this.callback = callback;
@@ -44,14 +46,20 @@ public class JavaCaretListener implements CaretListener {
 		this.selectedLine = firstPart.split("\n").length - 1;
 		this.lineContext = text.getContext(selectedLine);
 		this.lineContent = line;
+		this.mappedClass = null;
+		this.mappedMember = null;
 		if (word.length() > 0) {
 			this.word = word;
-			this.selectedMapping = detectMapping();
+			// Todo: Optimize by better context handling 
+			// (2D instead of 3D)
+			this.mappedClass = detectClass();
+			if (this.mappedClass == null) {
+				this.mappedMember = detectMember();
+			}
 			// Enable interaction
 			text.setEditable(true);
 		} else {
 			this.word = null;
-			this.selectedMapping = null;
 			// Disable interaction
 			text.setEditable(false);
 		}
@@ -62,7 +70,7 @@ public class JavaCaretListener implements CaretListener {
 	 * 
 	 * @return
 	 */
-	private ClassMapping detectMapping() {
+	private ClassMapping detectClass() {
 		for (Entry<String, ClassMapping> entry : callback.getJarReader().getMapping().getMappings().entrySet()) {
 			ClassMapping cm = entry.getValue();
 			String nameOriginal = entry.getKey();
@@ -71,6 +79,22 @@ public class JavaCaretListener implements CaretListener {
 			String cutCurr = nameCurrent.substring(nameCurrent.lastIndexOf("/") + 1);
 			if (word.equals(cutOrig) || word.equals(cutCurr)) {
 				return cm;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Detects a member based on the current selection.
+	 * 
+	 * @return
+	 */
+	private MemberMapping detectMember() {
+		for (MemberMapping mm : callback.getCurrentClass().getMembers()) {
+			String nameOriginal = mm.name.original;
+			String nameCurrent = mm.name.getValue();
+			if (word.equals(nameOriginal) || word.equals(nameCurrent)) {
+				return mm;
 			}
 		}
 		return null;
@@ -119,7 +143,17 @@ public class JavaCaretListener implements CaretListener {
 	 * 
 	 * @return
 	 */
-	public ClassMapping getSelectedMapping() {
-		return selectedMapping;
+	public ClassMapping getClassMapping() {
+		return mappedClass;
+	}
+
+	/**
+	 * Returns the MemberMapping based on the current selection (
+	 * {@linkplain #getWord()}).
+	 * 
+	 * @return
+	 */
+	public MemberMapping getMemberMapping() {
+		return mappedMember;
 	}
 }

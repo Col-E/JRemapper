@@ -191,6 +191,15 @@ public class JavaTextArea extends JPanel {
 	}
 
 	/**
+	 * Sets the position of the caret in the text area.
+	 * 
+	 * @param pos
+	 */
+	public void setCaretPosition(int pos) {
+		textArea.setCaretPosition(pos);
+	}
+
+	/**
 	 * Returns the text area's caret listener.
 	 * 
 	 * @return

@@ -3,6 +3,12 @@ package me.coley;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Credit: <a href=
+ * "https://github.com/helios-decompiler/Helios/blob/36cfe93bb42a4aa09be86bbeab99434b7c51053d/src/main/java/com/heliosdecompiler/helios/transformers/decompilers/CFRDecompiler.java#L80">
+ * Samczung</a>
+ * 
+ */
 public enum CFRSetting {
 	//@formatter:off
 	DECODE_ENUM_SWITCH("decodeenumswitch", "Decode Enum Switch", true),
@@ -51,6 +57,7 @@ public enum CFRSetting {
 	RENAME_ILLEGAL_IDENTIFIERS("renameillegalidents", "Rename illegal identifiers", false),
 	RENAME_DUPE_MEMBERS("renamedupmembers", "Rename duplicated member names", false);
 	//@formatter:on
+
 	private final String name;
 	private final String param;
 	private boolean on;
@@ -86,7 +93,7 @@ public enum CFRSetting {
 	 * 
 	 * @return <String, String(of boolean)>
 	 */
-	public static Map<String, String> getSettings() {
+	public static Map<String, String> toStringMap() {
 		Map<String, String> options = new HashMap<>();
 		for (CFRSetting setting : CFRSetting.values()) {
 			options.put(setting.getParam(), String.valueOf(setting.isEnabled()));

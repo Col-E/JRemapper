@@ -2,6 +2,8 @@ package me.coley;
 
 import java.awt.EventQueue;
 import java.io.File;
+import java.io.IOException;
+
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -26,6 +28,10 @@ public class Program {
 	 * Current class in text area.
 	 */
 	private ClassMapping currentClass;
+	/**
+	 * Options not pertaining to CFR.
+	 */
+	private Options options = new Options();
 
 	/**
 	 * Displays the GUI.
@@ -97,7 +103,11 @@ public class Program {
 	 * @param selectedFile
 	 */
 	public void onSaveMappings(File selectedFile) {
-		// TODO: stub
+		try {
+			jar.saveMappingsTo(selectedFile);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -106,14 +116,17 @@ public class Program {
 	 * @param selectedFile
 	 */
 	public void onSaveJar(File selectedFile) {
-		// TODO: stub
+		jar.saveJarTo(selectedFile);
 	}
-	
-	public void updateTreePath(String original, String renamed){
-		//"io/github/bmf/ClassNode"
-		//"dank/meme/NewNodeName"
-		window.getFileTree().update(jar, original, renamed);
 
+	/**
+	 * Updates a tree path given the initial/after values of a class rename.
+	 * 
+	 * @param original
+	 * @param renamed
+	 */
+	public void updateTreePath(String original, String renamed) {
+		window.getFileTree().update(jar, original, renamed);
 	}
 
 	/**
@@ -132,7 +145,7 @@ public class Program {
 				// Update
 				this.currentClass = clazz;
 				// Decompile using CFR, send text to the text-area.
-				PluginRunner pluginRunner = new PluginRunner(CFRSetting.getSettings(), new CFRSourceImpl(bytes));
+				PluginRunner pluginRunner = new PluginRunner(CFRSetting.toStringMap(), new CFRSourceImpl(bytes));
 				String decomp = pluginRunner.getDecompilationFor(originalName);
 				window.getSourceArea().setText(decomp);
 			}
@@ -167,5 +180,14 @@ public class Program {
 	 */
 	public JarReader getJarReader() {
 		return jar;
+	}
+
+	/**
+	 * Returns program options.
+	 * 
+	 * @return
+	 */
+	public Options getOptions() {
+		return options;
 	}
 }

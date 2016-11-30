@@ -86,7 +86,6 @@ public class FileTree extends JPanel {
 	private void removeTreePath(MappingTreeNode parent, ArrayList<String> dirPath, DefaultTreeModel model) {
 		while (dirPath.size() > 0) {
 			String section = dirPath.get(0);
-			System.out.println("---" + section);
 			MappingTreeNode node = parent.getChild(section);
 			// Create child if it doesn't exist.
 			MappingTreeNode up = parent;
