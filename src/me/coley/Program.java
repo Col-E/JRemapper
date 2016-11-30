@@ -104,7 +104,7 @@ public class Program {
 	 */
 	public void onSaveMappings(File selectedFile) {
 		try {
-			jar.saveMappingsTo(selectedFile);
+			jar.saveMappingsTo(selectedFile,true);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
