@@ -46,6 +46,9 @@ public class StringUtil {
 		if (c >= 'A' && c <= 'Z') {
 			return false;
 		}
+		if (c >= '0' && c <= '9') {
+			return false;
+		}
 		if (extra && c == '/') {
 			return false;
 		}
