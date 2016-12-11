@@ -49,10 +49,22 @@ public class StringUtil {
 		if (c >= '0' && c <= '9') {
 			return false;
 		}
-		if (extra && c == '/') {
+		if (c == '_') {
+			return false;
+		}
+		if (extra && (c == '/')) {
 			return false;
 		}
 		return true;
+	}
+
+	public static String getFirstNonWordChar(String text) {
+		for (char c : text.toCharArray()) {
+			if (isNonWord(c, false)) {
+				return Character.toString(c);
+			}
+		}
+		return null;
 	}
 
 }

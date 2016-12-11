@@ -3,8 +3,8 @@ package me.coley.gui.listener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
-import io.github.bmf.util.mapping.ClassMapping;
-import io.github.bmf.util.mapping.MemberMapping;
+import io.github.bmf.mapping.ClassMapping;
+import io.github.bmf.mapping.MemberMapping;
 import me.coley.Options;
 import me.coley.Program;
 import me.coley.gui.component.JavaTextArea;
@@ -23,7 +23,7 @@ public class JavaKeyListener implements KeyListener {
 	public void keyPressed(KeyEvent e) {
 		// Make sure the selection data isn't
 		// updated while the user is typing.
-		text.setCanParse(false);
+		text.setCanParse(false);		
 		int c = e.getKeyCode();
 		if (c == KeyEvent.VK_LEFT || c == KeyEvent.VK_RIGHT || c == KeyEvent.VK_UP || c == KeyEvent.VK_DOWN) {
 			// Movement via typing is exempted
@@ -31,7 +31,6 @@ public class JavaKeyListener implements KeyListener {
 		} else if (c == KeyEvent.VK_ENTER) {
 			e.consume();
 			// Send result
-			text.setEditable(false);
 			ClassMapping cm = text.getCaretListener().getClassMapping();
 			MemberMapping mm = text.getCaretListener().getMemberMapping();
 			int pos = text.getCaretPosition();
@@ -71,6 +70,8 @@ public class JavaKeyListener implements KeyListener {
 				// TODO: Better positon reset
 				text.setCaretPosition(pos);
 			}
+			
+			text.setEditable(false);
 
 		} else if (c == KeyEvent.VK_SPACE) {
 			// Replace word with package

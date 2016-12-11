@@ -17,10 +17,12 @@ import me.coley.Program;
 import me.coley.gui.listener.JavaCaretListener;
 import me.coley.gui.listener.JavaKeyListener;
 import me.coley.gui.listener.JavaMouseListener;
+import me.coley.util.StringUtil;
 
 @SuppressWarnings("serial")
 public class JavaTextArea extends JPanel {
 	private final static List<String> INVALID_CONTENT = Arrays.asList("for ", "try ", "do ", "if ", "catch ", "while ");
+	private final static List<String> MODS = Arrays.asList("public", "protected", "private", "static", "volatile", "abstract", "transient");
 	private final RSyntaxTextArea textArea = new RSyntaxTextArea(25, 70);
 	private final RTextScrollPane scrollText = new RTextScrollPane(textArea);
 	private final Program callback;
@@ -95,21 +97,31 @@ public class JavaTextArea extends JPanel {
 			} else if (line.endsWith(";")) {
 				// Get the last word in the line (substring if assignment
 				// detected)
-				String lineCopy = line;
 				if (line.contains(" = ")) {
-					lineCopy = line.substring(0, line.indexOf(" = "));
-				}
-				String[] lineSplit = lineCopy.split(" ");
-				String lastWord = lineSplit[lineSplit.length - 1];
-				// Does the last word return an empty list(checked against
-				// members)?
-				// if so: Method body / not a member
-				// else: Detected member
-				if (callback.getCurrentClass().getMembersByName(lastWord).isEmpty()) {
-					context.add(LineContext.METHOD_BODY);
+					// I mean, it's assignment so it's some kind of assignment.
+					context.add(LineContext.VALUE_DEC);
 				} else {
-					// TODO: Detect false positives
-					context.add(LineContext.FIELD_DEC);
+					// Split trimed line
+					String trim = line.substring(0, line.length() - 1).trim();
+					String[] decSplit = trim.split(" ");
+					// If it only has 1 or no args, just call it unknown.
+					if (decSplit.length >= 2) {
+						// Get name and type
+						String name = decSplit[decSplit.length - 1];
+						String type = decSplit[decSplit.length - 2];
+						// Check if there are invalid chars in either
+						String invalidCharInName = StringUtil.getFirstNonWordChar(name);
+						String invalidCharInType = StringUtil.getFirstNonWordChar(type);
+						// No invalid chars? Declaration.
+						// else, who knows!
+						if (invalidCharInName == null && invalidCharInType == null) {
+							context.add(LineContext.VALUE_DEC);
+						} else {
+							// TODO: edge cases
+							// private static /* synthetic */ int[] $NAME$
+							context.add(LineContext.UNKNOWN);
+						}
+					} else context.add(LineContext.UNKNOWN);
 				}
 			} else if (!line.endsWith(";") && line.contains("(") && line.contains(")") && line.endsWith("{")) {
 				boolean isBody = false;
@@ -129,10 +141,11 @@ public class JavaTextArea extends JPanel {
 					// members)?
 					// if so: Method body / not a member
 					// else: Detected member
-					if (callback.getCurrentClass().getMembersByName(sub).isEmpty()) {
+					if (callback.getCurrentClass().getMembersByOriginalName(sub).isEmpty()) {
 						context.add(LineContext.METHOD_BODY);
 					} else {
-						// TODO: Detect false positives
+						// TODO: See if there are any false positives and re-do
+						// this logic if so.
 						context.add(LineContext.METHOD_DEC);
 					}
 				}

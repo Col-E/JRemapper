@@ -9,7 +9,7 @@ import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeModel;
 
 import io.github.bmf.JarReader;
-import io.github.bmf.util.mapping.ClassMapping;
+import io.github.bmf.mapping.ClassMapping;
 import me.coley.Program;
 import me.coley.gui.JavaCellRenderer;
 import me.coley.gui.listener.FileSelectionListener;
@@ -40,7 +40,9 @@ public class FileTree extends JPanel {
 		String jarName = read.getFile().getName();
 		MappingTreeNode root = new MappingTreeNode(jarName, null);
 		DefaultTreeModel model = new DefaultTreeModel(root);
-		tree.addTreeSelectionListener(new FileSelectionListener(callback));
+		FileSelectionListener sel = new FileSelectionListener(callback);
+		tree.addTreeSelectionListener(sel);
+		tree.addMouseListener(sel);
 		tree.setModel(model);
 		// Iterate classes
 		for (String className : read.getClassEntries().keySet()) {

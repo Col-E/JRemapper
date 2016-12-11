@@ -81,11 +81,11 @@ public class Gui {
 			}
 			JMenu mnOptions = new JMenu("Options");
 			{
-				for (final String setting : callback.getOptions().getOptions().keySet()){
+				for (final String setting : callback.getOptions().getOptions().keySet()) {
 					boolean enabled = callback.getOptions().get(setting);
 					final JCheckBox chk = new JCheckBox(setting);
 					chk.setSelected(enabled);
-					chk.addActionListener(new ActionListener(){
+					chk.addActionListener(new ActionListener() {
 						@Override
 						public void actionPerformed(ActionEvent e) {
 							callback.getOptions().set(setting, chk.isSelected());
@@ -96,10 +96,10 @@ public class Gui {
 			}
 			JMenu mnCfr = new JMenu("CFR");
 			{
-				for (final CFRSetting setting : CFRSetting.values()){
+				for (final CFRSetting setting : CFRSetting.values()) {
 					final JCheckBox chk = new JCheckBox(setting.getText());
 					chk.setSelected(setting.isEnabled());
-					chk.addActionListener(new ActionListener(){
+					chk.addActionListener(new ActionListener() {
 						@Override
 						public void actionPerformed(ActionEvent e) {
 							setting.setEnabled(chk.isSelected());
@@ -112,6 +112,10 @@ public class Gui {
 			menuBar.add(mnOptions);
 			menuBar.add(mnCfr);
 		}
+	}
+
+	public void setTitle(String string) {
+		frmCfrRemapper.setTitle("CFR Remapper: " + string);
 	}
 
 	/**

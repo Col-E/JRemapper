@@ -10,7 +10,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.benf.cfr.reader.PluginRunner;
 import io.github.bmf.ClassWriter;
 import io.github.bmf.JarReader;
-import io.github.bmf.util.mapping.ClassMapping;
+import io.github.bmf.mapping.ClassMapping;
 import me.coley.gui.Gui;
 
 public class Program {
