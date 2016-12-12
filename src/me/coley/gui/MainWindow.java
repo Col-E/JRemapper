@@ -17,16 +17,16 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
-public class Gui {
+public class MainWindow {
 	private final Program callback;
-	private final JFrame frmCfrRemapper = new JFrame();
+	private final JFrame frame = new JFrame();
 	private FileTree fileTree;
 	private JavaTextArea sourceArea;
 
 	/**
 	 * Create the application.
 	 */
-	public Gui(Program callback) {
+	public MainWindow(Program callback) {
 		this.callback = callback;
 	}
 
@@ -38,10 +38,10 @@ public class Gui {
 		// Setting up the frame
 		{
 			spMain.setDividerLocation(200);
-			frmCfrRemapper.setTitle("CFR Remapper");
-			frmCfrRemapper.setBounds(100, 100, 867, 578);
-			frmCfrRemapper.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			frmCfrRemapper.getContentPane().add(spMain, BorderLayout.CENTER);
+			frame.setTitle("CFR Remapper");
+			frame.setBounds(100, 100, 867, 578);
+			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			frame.getContentPane().add(spMain, BorderLayout.CENTER);
 		}
 		// Setting up the file tree for jar layouts
 		fileTree = new FileTree(callback);
@@ -56,7 +56,7 @@ public class Gui {
 		// Setting up the menu
 		JMenuBar menuBar = new JMenuBar();
 		{
-			frmCfrRemapper.setJMenuBar(menuBar);
+			frame.setJMenuBar(menuBar);
 			JMenu mnFile = new JMenu("File");
 			{
 				JMenu mnOpen = new JMenu("Open");
@@ -64,6 +64,7 @@ public class Gui {
 					JMenuItem mntmOpenJar = new JMenuItem("Jar");
 					JMenuItem mntmOpenMap = new JMenuItem("Mappings");
 					mntmOpenJar.addActionListener(new ActionChooseFile(callback));
+					//mntmOpenMap.addActionListener(new ActionLoadMapping(callback));
 					mnOpen.add(mntmOpenJar);
 					mnOpen.add(mntmOpenMap);
 				}
@@ -108,21 +109,31 @@ public class Gui {
 					mnCfr.add(chk);
 				}
 			}
+			JMenu mnMapping = new JMenu("Mapping");
+			{
+				JMenuItem mntmRenameUnique = new JMenuItem("Rename-all uniquely");
+				JMenuItem mntmResetMembers = new JMenuItem("Reset members");
+				mntmRenameUnique.addActionListener(new ActionRenameUnique(callback));
+				mntmResetMembers.addActionListener(new ActionRenameReset(callback));
+				mnMapping.add(mntmRenameUnique);
+				mnMapping.add(mntmResetMembers);
+			}
 			menuBar.add(mnFile);
 			menuBar.add(mnOptions);
 			menuBar.add(mnCfr);
+			menuBar.add(mnMapping);
 		}
 	}
 
 	public void setTitle(String string) {
-		frmCfrRemapper.setTitle("CFR Remapper: " + string);
+		frame.setTitle("CFR Remapper: " + string);
 	}
 
 	/**
 	 * Displays the GUI.
 	 */
 	public void display() {
-		frmCfrRemapper.setVisible(true);
+		frame.setVisible(true);
 	}
 
 	public FileTree getFileTree() {

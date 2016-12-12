@@ -11,7 +11,7 @@ import org.benf.cfr.reader.PluginRunner;
 import io.github.bmf.ClassWriter;
 import io.github.bmf.JarReader;
 import io.github.bmf.mapping.ClassMapping;
-import me.coley.gui.Gui;
+import me.coley.gui.MainWindow;
 
 public class Program {
 
@@ -19,7 +19,7 @@ public class Program {
 	/**
 	 * GUI
 	 */
-	private final Gui window = new Gui(this);
+	private final MainWindow window = new MainWindow(this);
 	/**
 	 * File chooser for selecting jars.
 	 */
@@ -160,7 +160,7 @@ public class Program {
 	 * 
 	 * @return
 	 */
-	public final Gui getWindow() {
+	public final MainWindow getWindow() {
 		return window;
 	}
 

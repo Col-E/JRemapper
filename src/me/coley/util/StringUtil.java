@@ -67,4 +67,11 @@ public class StringUtil {
 		return null;
 	}
 
+	public static int countOccurrences(String text, char c) {
+		int n = 0;
+		for (int i = 0; i < text.length(); i++)
+			if (text.charAt(i) == c)
+				n++;
+		return n;
+	}
 }

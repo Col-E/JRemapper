@@ -11,6 +11,10 @@ import io.github.bmf.consts.ConstClass;
 import io.github.bmf.consts.ConstantType;
 import io.github.bmf.mapping.ClassMapping;
 import io.github.bmf.mapping.MemberMapping;
+import io.github.bmf.type.PrimitiveType;
+import io.github.bmf.type.Type;
+import io.github.bmf.type.descriptors.MethodDescriptor;
+import io.github.bmf.type.descriptors.VariableDescriptor;
 import io.github.bmf.util.ConstUtil;
 import me.coley.LineContext;
 import me.coley.Program;
@@ -80,7 +84,7 @@ public class JavaCaretListener implements CaretListener {
 				break;
 			case IMPORT:
 				// The class name is explicitly defined
-				String className = line.substring(0, line.length()-1).split(" ")[1].replace(".", "/");
+				String className = line.substring(0, line.length() - 1).split(" ")[1].replace(".", "/");
 				System.err.println(className);
 				this.mappedClass = callback.getJarReader().getMapping().getMapping(className);
 				break;
@@ -93,14 +97,92 @@ public class JavaCaretListener implements CaretListener {
 			case METHOD_DEC:
 				// It could be the member name, a parameter, a value, or return
 				// type.
+				// TODO: Check for types
 				List<MemberMapping> possMembers = callback.getCurrentClass().getMembersByName(this.word);
 				if (possMembers.size() > 0) {
-					// Ok so it's likely a method name
-					// TODO: If there is more than one run further tests to
-					// determine which method it is
-					this.mappedMember = possMembers.get(0);
+					// Only one possible option.
+					if (possMembers.size() == 1) {
+						this.mappedMember = possMembers.get(0);
+						break;
+					}
+					// Ok so there's a couple of things it can be.
+					// First lets check if it's a method/field and compare the
+					// descriptors of the matches.
+					// Discard obvious mis-matches.
+					//
+					// Word with space is because space is always present before
+					// the word if it truly is a type/name of something.
+					String sw = " " + this.word;
+					// Get the index of the word in the line.
+					// Determined by patterns used by field/method declarations.
+					int baseIndx = this.lineContent.indexOf(sw + "("); // method
+					if (baseIndx == -1)
+						baseIndx = this.lineContent.indexOf(sw + " = "); // field
+					if (baseIndx == -1)
+						baseIndx = this.lineContent.indexOf(sw + ";"); // field
+					int afterWordIndx = baseIndx + sw.length();
+					boolean isMethod = this.lineContent.charAt(afterWordIndx) == '(';
+					boolean isField = this.lineContent.charAt(afterWordIndx) == ';' || this.lineContent.substring(afterWordIndx).startsWith(" = ");
+					if (!isMethod && !isField) {
+						// TODO: Determine what this is. Likely that the user
+						// clicked on the return type or a parameter.
+						System.out.println("a: " + this.lineContent.substring(afterWordIndx));
+						break;
+					}
+					for (MemberMapping mm : possMembers) {
+						// Methods have a ( in their description.
+						if (isMethod) {
+							if (!mm.desc.original.contains("("))
+								continue;
+							// Calculating number of args
+							// commas used under the assumption generics aren't
+							// in the args like Map<K, V>
+							boolean hasParams = this.lineContent.indexOf("()") == -1;
+							int commas = hasParams ? StringUtil.countOccurrences(this.lineContent, ',') : 0;
+							int params = hasParams ? 1 + (commas) : 0;
+							MethodDescriptor md = (MethodDescriptor) mm.desc;
+							// Checking the number of args
+							if (md.parameters.size() != params) {
+								continue;
+							}
+							// Checking return type
+							String retType = this.lineContent.substring(0, this.lineContent.indexOf(sw + "("));
+							retType = retType.substring(retType.lastIndexOf(" ") + 1, retType.length());
+							// For primitives convert desc to name and check if
+							// types
+							// are equal.
+							// For objects check if desc contains return
+							// decompiled type name.
+							if (md.returnType instanceof PrimitiveType) {
+								PrimitiveType prim = (PrimitiveType) md.returnType;
+								if (!retType.equals(prim.toJavaName()))
+									continue;
+							} else if (!md.returnType.toDesc().contains(retType))
+								continue;
+						}
+						// Fields do not have a ( in their description
+						if (isField) {
+							if (mm.desc.original.contains("("))
+								continue;
+							VariableDescriptor vd = (VariableDescriptor) mm.desc;
+							String retType = this.lineContent.substring(0, this.lineContent.indexOf(sw));
+							retType = retType.substring(retType.lastIndexOf(" ") + 1);
+							// For primitives convert desc to name and check if
+							// types
+							// are equal.
+							// For objects check if desc contains return
+							// decompiled type name.
+							if (vd.type instanceof PrimitiveType) {
+								PrimitiveType prim = (PrimitiveType) vd.type;
+								if (!retType.equals(prim.toJavaName()))
+									continue;
+							} else if (!vd.type.toDesc().contains(retType))
+								continue;
+						}
+						this.mappedMember = mm;
+					}
 				} else {
-					// Likely a parameter or return type.
+					// Likely a parameter or return type (class name)
 					// Type is cross referenced with imports (checking class
 					// constants)
 					//
@@ -139,9 +221,10 @@ public class JavaCaretListener implements CaretListener {
 			// Enable interaction if a selection has been found
 			if (this.mappedClass != null || this.mappedMember != null) {
 				if (this.mappedClass != null) {
-					callback.getWindow().setTitle(" CL<" + this.mappedClass.name.getValue() + ">");
+					callback.getWindow().setTitle(" CC " + this.mappedClass.name.getValue());
 				} else {
-					callback.getWindow().setTitle(" FM<" + this.mappedMember.name.getValue() + ">");
+					String type = this.mappedMember.desc.original.contains("(") ? "MM" : "FF";
+					callback.getWindow().setTitle(" " + type + " " + this.mappedMember.name.getValue() + " " + this.mappedMember.desc.toDesc());
 				}
 				text.setEditable(true);
 			} else {
@@ -152,41 +235,6 @@ public class JavaCaretListener implements CaretListener {
 			// Disable interaction
 			text.setEditable(false);
 		}
-	}
-
-	/**
-	 * Detects a class based on the current selection.
-	 * 
-	 * @return
-	 */
-	private ClassMapping detectClass() {
-		for (Entry<String, ClassMapping> entry : callback.getJarReader().getMapping().getMappings().entrySet()) {
-			ClassMapping cm = entry.getValue();
-			String nameOriginal = entry.getKey();
-			String nameCurrent = cm.name.getValue();
-			String cutOrig = nameOriginal.substring(nameOriginal.lastIndexOf("/") + 1);
-			String cutCurr = nameCurrent.substring(nameCurrent.lastIndexOf("/") + 1);
-			if (word.equals(cutOrig) || word.equals(cutCurr)) {
-				return cm;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Detects a member based on the current selection.
-	 * 
-	 * @return
-	 */
-	private MemberMapping detectMember() {
-		for (MemberMapping mm : callback.getCurrentClass().getMembers()) {
-			String nameOriginal = mm.name.original;
-			String nameCurrent = mm.name.getValue();
-			if (word.equals(nameOriginal) || word.equals(nameCurrent)) {
-				return mm;
-			}
-		}
-		return null;
 	}
 
 	/**
