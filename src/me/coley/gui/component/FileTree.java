@@ -3,6 +3,8 @@ package me.coley.gui.component;
 import java.awt.BorderLayout;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Set;
+
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
@@ -10,6 +12,7 @@ import javax.swing.tree.DefaultTreeModel;
 
 import io.github.bmf.JarReader;
 import io.github.bmf.mapping.ClassMapping;
+import me.coley.Options;
 import me.coley.Program;
 import me.coley.gui.JavaCellRenderer;
 import me.coley.gui.listener.FileSelectionListener;
@@ -35,7 +38,9 @@ public class FileTree extends JPanel {
 	 * 
 	 * @param jar
 	 */
-	public void setup(JarReader read) {
+	public void setup() {
+		JarReader read = callback.getJarReader();
+		boolean ignoreErr = callback.getOptions().get(Options.IGNORE_ERRORS);
 		// Root node
 		String jarName = read.getFile().getName();
 		MappingTreeNode root = new MappingTreeNode(jarName, null);
@@ -45,7 +50,8 @@ public class FileTree extends JPanel {
 		tree.addMouseListener(sel);
 		tree.setModel(model);
 		// Iterate classes
-		for (String className : read.getClassEntries().keySet()) {
+		Set<String> names = ignoreErr ? read.getMapping().getMappings().keySet() : read.getClassEntries().keySet();
+		for (String className : names) {
 			// Get mapping linked to class name
 			ClassMapping mapping = read.getMapping().getMapping(className);
 			String curName = mapping.name.getValue();
@@ -54,7 +60,20 @@ public class FileTree extends JPanel {
 			// Create directory of nodes
 			generateTreePath(root, dirPath, mapping, model);
 		}
-		model.setRoot(SwingUtil.sort(root));
+		if (ignoreErr) {
+			// Ignore errors should be used ONLY if a heavily obfuscated jar cannot be loaded otherwise.
+			try {
+				// In most jar files this shouldn't fail.
+				// It may fail in heavily obfuscated jars with odd unicode names.
+				model.setRoot(SwingUtil.sort(root));
+			} catch (Exception e) {
+				// This is the backup that will work but looks ugly and isn't
+				// sorted.
+				model.setRoot(root);
+			}
+		} else {
+			model.setRoot(SwingUtil.sort(root));
+		}
 	}
 
 	/**
@@ -129,6 +148,40 @@ public class FileTree extends JPanel {
 			}
 			parent = node;
 			dirPath.remove(0);
+		}
+	}
+
+	public void refresh() {
+		JarReader read = callback.getJarReader();
+		// Root node
+		String jarName = read.getFile().getName();
+		MappingTreeNode root = new MappingTreeNode(jarName, null);
+		DefaultTreeModel model = new DefaultTreeModel(root);
+		// FileSelectionListener sel = new FileSelectionListener(callback);
+		// tree.addTreeSelectionListener(sel);
+		// tree.addMouseListener(sel);
+		tree.setModel(model);
+		// Iterate classes
+		for (String className : read.getMapping().getMappings().keySet()) {
+			if (!read.getClassEntries().containsKey(className)){
+				continue;
+			}
+			// Get mapping linked to class name
+			ClassMapping mapping = read.getMapping().getMapping(className);
+			String curName = mapping.name.getValue();
+			// Create directory path based on current mapping stored name.
+			ArrayList<String> dirPath = new ArrayList<String>(Arrays.asList(curName.split("/")));
+			// Create directory of nodes
+			generateTreePath(root, dirPath, mapping, model);
+		}
+		try {
+			// In most jar files this shouldn't fail.
+			model.setRoot(SwingUtil.sort(root));
+		} catch (Exception e) {
+			// Fails in heavily obfuscated jars with odd unicode names.
+			// This is the backup that will work but looks ugly and isn't
+			// sorted.
+			model.setRoot(root);
 		}
 	}
 }

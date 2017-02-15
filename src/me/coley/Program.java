@@ -3,6 +3,8 @@ package me.coley;
 import java.awt.EventQueue;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -16,6 +18,7 @@ import me.coley.gui.MainWindow;
 public class Program {
 
 	private JarReader jar;
+	private List<File> dependencies = new ArrayList<File>();
 	/**
 	 * GUI
 	 */
@@ -50,39 +53,6 @@ public class Program {
 	}
 
 	/**
-	 * Returns the file chooser. If it is null it is instantiated and set to the
-	 * working directory. Only jar files can be selected.
-	 * 
-	 * @return
-	 */
-	public JFileChooser getFileChooser() {
-		if (fileChooser == null) {
-			fileChooser = new JFileChooser();
-			FileNameExtensionFilter filter = new FileNameExtensionFilter("Java Archives", "jar");
-			fileChooser.setFileFilter(filter);
-			String dir = System.getProperty("user.dir");
-			File fileDir = new File(dir);
-			fileChooser.setDialogTitle("Open File");
-			fileChooser.setCurrentDirectory(fileDir);
-		}
-		return fileChooser;
-	}
-
-	/**
-	 * Creates and returns a file chooser set in the working directory.
-	 * 
-	 * @return
-	 */
-	public JFileChooser createFileSaver() {
-		JFileChooser fileSaver = new JFileChooser();
-		String dir = System.getProperty("user.dir");
-		File fileDir = new File(dir);
-		fileSaver.setCurrentDirectory(fileDir);
-		fileSaver.setDialogTitle("Save to File");
-		return fileSaver;
-	}
-
-	/**
 	 * Called when a file is loaded.
 	 * 
 	 * @param file
@@ -91,10 +61,49 @@ public class Program {
 	public void onFileSelect(File file) {
 		// Load jar file into BMF
 		// Set up mappings
-		jar = new JarReader(file, true, true);
+		boolean ignore = options.get(Options.IGNORE_ERRORS);;
 		//
-		window.getFileTree().setup(jar);
+		if (dependencies.size() == 0) {
+			jar = new JarReader(file, false, false);
+			jar.getMapping().setIgnoreUnloadedTypes(ignore);
+			jar.read();
+			jar.genMappings();
+		} else {
+			jar = new JarReader(file, false, false);
+			jar.getMapping().setIgnoreUnloadedTypes(ignore);
+			for (File dependency : dependencies) {
+				jar.addLibrary(dependency);
+			}
+			jar.read();
+			jar.genMappings();
+		}
+		//
+		window.getFileTree().setup();
+	}
 
+	/**
+	 * Called when a depencency is added.
+	 * 
+	 * @param file
+	 *            Library loaded.
+	 */
+	public void onDependencySelect(File file) {
+		dependencies.add(file);
+	}
+
+	/**
+	 * Called when the a mappings file is selected to be applied to the current
+	 * jar.
+	 * 
+	 * @param selectedFile
+	 */
+	public void onLoadMapping(File selectedFile) {
+		try {
+			jar.loadMappingsFrom(selectedFile);
+			refreshTree();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -104,7 +113,7 @@ public class Program {
 	 */
 	public void onSaveMappings(File selectedFile) {
 		try {
-			jar.saveMappingsTo(selectedFile,true);
+			jar.saveMappingsTo(selectedFile, true);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -127,6 +136,13 @@ public class Program {
 	 */
 	public void updateTreePath(String original, String renamed) {
 		window.getFileTree().update(jar, original, renamed);
+	}
+
+	/**
+	 * Regenerates the tree.
+	 */
+	public void refreshTree() {
+		window.getFileTree().refresh();
 	}
 
 	/**
@@ -153,6 +169,59 @@ public class Program {
 			// Failed to decompile
 			window.getSourceArea().setText(e.toString());
 		}
+	}
+
+	/**
+	 * Returns the file chooser. If it is null it is instantiated and set to the
+	 * working directory with a filter for jar files.
+	 * 
+	 * @return
+	 */
+	public JFileChooser getFileChooser() {
+		return getFileChooser("Java Archives", "jar");
+	}
+
+	/**
+	 * Returns the file chooser. If it is null it is instantiated and set to the
+	 * working directory with a filter for the given file type. To allow any
+	 * type, have the parameters be null.
+	 * 
+	 * @param fileType
+	 *            Name of the type of file
+	 * @param extension
+	 *            Actual file extension.
+	 * @return
+	 */
+	public JFileChooser getFileChooser(String fileType, String extension) {
+		if (fileChooser == null) {
+			fileChooser = new JFileChooser();
+
+			String dir = System.getProperty("user.dir");
+			File fileDir = new File(dir);
+			fileChooser.setDialogTitle("Open File");
+			fileChooser.setCurrentDirectory(fileDir);
+		}
+		if (fileType == null || extension == null) {
+			fileChooser.setFileFilter(null);
+		} else {
+			FileNameExtensionFilter filter = new FileNameExtensionFilter(fileType, extension);
+			fileChooser.setFileFilter(filter);
+		}
+		return fileChooser;
+	}
+
+	/**
+	 * Creates and returns a file chooser set in the working directory.
+	 * 
+	 * @return
+	 */
+	public JFileChooser createFileSaver() {
+		JFileChooser fileSaver = new JFileChooser();
+		String dir = System.getProperty("user.dir");
+		File fileDir = new File(dir);
+		fileSaver.setCurrentDirectory(fileDir);
+		fileSaver.setDialogTitle("Save to File");
+		return fileSaver;
 	}
 
 	/**
@@ -190,4 +259,5 @@ public class Program {
 	public Options getOptions() {
 		return options;
 	}
+
 }

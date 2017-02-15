@@ -7,13 +7,10 @@ import javax.swing.JFileChooser;
 
 import me.coley.Program;
 
-/**
- * Prompts a user to select a jar file.
- */
-public class ActionChooseFile implements ActionListener {
+public class ActionAddLibrary implements ActionListener {
 	private final Program callback;
 
-	public ActionChooseFile(Program callback) {
+	public ActionAddLibrary(Program callback) {
 		this.callback = callback;
 	}
 
@@ -22,7 +19,7 @@ public class ActionChooseFile implements ActionListener {
 		JFileChooser chooser = callback.getFileChooser();
 		int val = chooser.showOpenDialog(null);
 		if (val == JFileChooser.APPROVE_OPTION) {
-			callback.onFileSelect(chooser.getSelectedFile());
+			callback.onDependencySelect(chooser.getSelectedFile());
 		}
 	}
 

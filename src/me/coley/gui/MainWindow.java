@@ -9,6 +9,7 @@ import java.awt.event.ActionListener;
 
 import me.coley.CFRSetting;
 import me.coley.Program;
+import me.coley.RenameType;
 import me.coley.gui.component.FileTree;
 import me.coley.gui.component.JavaTextArea;
 import me.coley.gui.listener.*;
@@ -62,10 +63,13 @@ public class MainWindow {
 				JMenu mnOpen = new JMenu("Open");
 				{
 					JMenuItem mntmOpenJar = new JMenuItem("Jar");
+					JMenuItem mntmOpenDependency = new JMenuItem("Dependency Jar");
 					JMenuItem mntmOpenMap = new JMenuItem("Mappings");
 					mntmOpenJar.addActionListener(new ActionChooseFile(callback));
-					//mntmOpenMap.addActionListener(new ActionLoadMapping(callback));
+					mntmOpenDependency.addActionListener(new ActionAddLibrary(callback));
+					mntmOpenMap.addActionListener(new ActionLoadMapping(callback));
 					mnOpen.add(mntmOpenJar);
+					mnOpen.add(mntmOpenDependency);
 					mnOpen.add(mntmOpenMap);
 				}
 				JMenu mnSave = new JMenu("Save As");
@@ -111,12 +115,23 @@ public class MainWindow {
 			}
 			JMenu mnMapping = new JMenu("Mapping");
 			{
-				JMenuItem mntmRenameUnique = new JMenuItem("Rename-all uniquely");
-				JMenuItem mntmResetMembers = new JMenuItem("Reset members");
-				mntmRenameUnique.addActionListener(new ActionRenameUnique(callback));
-				mntmResetMembers.addActionListener(new ActionRenameReset(callback));
-				mnMapping.add(mntmRenameUnique);
-				mnMapping.add(mntmResetMembers);
+				JMenu mnMapCurrent = new JMenu("Current Class");
+				{
+					JMenuItem mntmRenameUnique = new JMenuItem("Rename-all uniquely");
+					JMenuItem mntmResetMembers = new JMenuItem("Reset members");
+					mntmRenameUnique.addActionListener(new ActionRenameCurrentMembers(callback));
+					mntmResetMembers.addActionListener(new ActionRenameReset(callback));
+					mnMapCurrent.add(mntmRenameUnique);
+					mnMapCurrent.add(mntmResetMembers);
+					mnMapping.add(mnMapCurrent);
+				}
+				JMenu mnMapAll = new JMenu("All Classes");
+				{
+					JMenuItem mntmRenameUnique = new JMenuItem("Rename-all: Simple");
+					mntmRenameUnique.addActionListener(new ActionRenameClasses(callback, RenameType.SIMPLE));
+					mnMapAll.add(mntmRenameUnique);
+					mnMapping.add(mnMapAll);
+				}
 			}
 			menuBar.add(mnFile);
 			menuBar.add(mnOptions);

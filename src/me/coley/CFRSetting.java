@@ -54,7 +54,7 @@ public enum CFRSetting {
 	RECOVER_TYPE_HINTS("recovertypehints", "Recover Type Hints", true),
 	FORCE_RETURNING_IFS("forcereturningifs", "Force Returning Ifs", true),
 	FOR_LOOP_AGG_CAPTURE("forloopaggcapture", "For Loop Aggressive Capture", true),
-	RENAME_ILLEGAL_IDENTIFIERS("renameillegalidents", "Rename illegal identifiers", false),
+	RENAME_ILLEGAL_IDENTIFIERS("renameillegalidents", "Rename illegal identifiers", true),
 	RENAME_DUPE_MEMBERS("renamedupmembers", "Rename duplicated member names", false);
 	//@formatter:on
 

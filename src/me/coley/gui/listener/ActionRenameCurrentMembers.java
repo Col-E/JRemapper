@@ -7,11 +7,11 @@ import io.github.bmf.mapping.ClassMapping;
 import io.github.bmf.mapping.MemberMapping;
 import me.coley.Program;
 
-public class ActionRenameUnique implements ActionListener {
+public class ActionRenameCurrentMembers implements ActionListener {
 
 	private Program callback;
 
-	public ActionRenameUnique(Program callback) {
+	public ActionRenameCurrentMembers(Program callback) {
 		this.callback = callback;
 	}
 
