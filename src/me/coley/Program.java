@@ -16,9 +16,7 @@ import io.github.bmf.mapping.ClassMapping;
 import me.coley.gui.MainWindow;
 
 public class Program {
-
 	private JarReader jar;
-	private List<File> dependencies = new ArrayList<File>();
 	/**
 	 * GUI
 	 */
@@ -61,34 +59,12 @@ public class Program {
 	public void onFileSelect(File file) {
 		// Load jar file into BMF
 		// Set up mappings
-		boolean ignore = options.get(Options.IGNORE_ERRORS);;
 		//
-		if (dependencies.size() == 0) {
-			jar = new JarReader(file, false, false);
-			jar.getMapping().setIgnoreUnloadedTypes(ignore);
-			jar.read();
-			jar.genMappings();
-		} else {
-			jar = new JarReader(file, false, false);
-			jar.getMapping().setIgnoreUnloadedTypes(ignore);
-			for (File dependency : dependencies) {
-				jar.addLibrary(dependency);
-			}
-			jar.read();
-			jar.genMappings();
-		}
+		jar = new JarReader(file, false, false);
+		jar.read();
+		jar.genMappings();
 		//
 		window.getFileTree().setup();
-	}
-
-	/**
-	 * Called when a depencency is added.
-	 * 
-	 * @param file
-	 *            Library loaded.
-	 */
-	public void onDependencySelect(File file) {
-		dependencies.add(file);
 	}
 
 	/**

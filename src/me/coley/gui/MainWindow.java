@@ -63,13 +63,10 @@ public class MainWindow {
 				JMenu mnOpen = new JMenu("Open");
 				{
 					JMenuItem mntmOpenJar = new JMenuItem("Jar");
-					JMenuItem mntmOpenDependency = new JMenuItem("Dependency Jar");
 					JMenuItem mntmOpenMap = new JMenuItem("Mappings");
 					mntmOpenJar.addActionListener(new ActionChooseFile(callback));
-					mntmOpenDependency.addActionListener(new ActionAddLibrary(callback));
 					mntmOpenMap.addActionListener(new ActionLoadMapping(callback));
 					mnOpen.add(mntmOpenJar);
-					mnOpen.add(mntmOpenDependency);
 					mnOpen.add(mntmOpenMap);
 				}
 				JMenu mnSave = new JMenu("Save As");
