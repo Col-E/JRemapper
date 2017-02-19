@@ -39,7 +39,7 @@ public class MainWindow {
 		// Setting up the frame
 		{
 			spMain.setDividerLocation(200);
-			frame.setTitle("CFR Remapper");
+			frame.setTitle("JRemapper");
 			frame.setBounds(100, 100, 867, 578);
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 			frame.getContentPane().add(spMain, BorderLayout.CENTER);
@@ -138,7 +138,7 @@ public class MainWindow {
 	}
 
 	public void setTitle(String string) {
-		frame.setTitle("CFR Remapper: " + string);
+		frame.setTitle("JRemapper: " + string);
 	}
 
 	/**
