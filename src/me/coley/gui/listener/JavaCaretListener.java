@@ -1,8 +1,6 @@
 package me.coley.gui.listener;
 
 import java.util.List;
-import java.util.Map.Entry;
-
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 
@@ -12,14 +10,12 @@ import io.github.bmf.consts.ConstantType;
 import io.github.bmf.mapping.ClassMapping;
 import io.github.bmf.mapping.MemberMapping;
 import io.github.bmf.type.PrimitiveType;
-import io.github.bmf.type.Type;
 import io.github.bmf.type.descriptors.MethodDescriptor;
 import io.github.bmf.type.descriptors.VariableDescriptor;
 import io.github.bmf.util.ConstUtil;
-import javafx.geometry.Pos;
-import me.coley.LineContext;
 import me.coley.Program;
 import me.coley.gui.component.JavaTextArea;
+import me.coley.parse.LineContext;
 import me.coley.util.StringUtil;
 
 public class JavaCaretListener implements CaretListener {

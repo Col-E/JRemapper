@@ -7,8 +7,6 @@ import java.util.List;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 
-import me.coley.gui.component.JavaTextArea;
-
 public class SwingUtil {
 	/**
 	 * Method by Adrian: [

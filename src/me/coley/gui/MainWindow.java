@@ -15,7 +15,6 @@ import java.util.Map;
 import me.coley.CFRSetting;
 import me.coley.Options;
 import me.coley.Program;
-import me.coley.RenameType;
 import me.coley.gui.component.JavaTextArea;
 import me.coley.gui.component.tree.FileTree;
 import me.coley.gui.listener.*;
@@ -134,7 +133,7 @@ public class MainWindow {
 				JMenu mnMapAll = new JMenu("All Classes");
 				{
 					JMenuItem mntmRenameUnique = new JMenuItem("Rename-all: Simple");
-					mntmRenameUnique.addActionListener(new ActionRenameClasses(callback, RenameType.SIMPLE));
+					mntmRenameUnique.addActionListener(new ActionRenameClasses(callback));
 					mnMapAll.add(mntmRenameUnique);
 					mnMapping.add(mnMapAll);
 				}

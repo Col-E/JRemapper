@@ -1,4 +1,4 @@
-package me.coley;
+package me.coley.parse;
 
 public enum LineContext {
 	//@formatter:off

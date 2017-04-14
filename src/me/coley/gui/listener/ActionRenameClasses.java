@@ -12,18 +12,15 @@ import io.github.bmf.type.Type;
 import io.github.bmf.type.descriptors.MethodDescriptor;
 import io.github.bmf.type.descriptors.VariableDescriptor;
 import me.coley.Program;
-import me.coley.RenameType;
 import me.coley.util.StringUtil;
 
 public class ActionRenameClasses implements ActionListener {
-	private final RenameType type;
 	private final Program callback;
 	private final Map<String, Integer> nameCounter = new HashMap<String, Integer>();
 	private int classCounter, fieldCounter, methodCounter;
 
-	public ActionRenameClasses(Program callback, RenameType type) {
+	public ActionRenameClasses(Program callback) {
 		this.callback = callback;
-		this.type = type;
 	}
 
 	@Override
