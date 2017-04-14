@@ -1,4 +1,4 @@
-package me.coley.gui.component;
+package me.coley.gui.component.tree;
 
 import java.util.HashMap;
 import java.util.Map;

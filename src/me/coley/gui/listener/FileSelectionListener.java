@@ -8,7 +8,7 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreeNode;
 
 import me.coley.Program;
-import me.coley.gui.component.MappingTreeNode;
+import me.coley.gui.component.tree.MappingTreeNode;
 
 public class FileSelectionListener implements TreeSelectionListener, MouseListener {
 	private final Program callback;

@@ -1,4 +1,4 @@
-package me.coley.gui.component;
+package me.coley.gui.component.tree;
 
 import java.awt.BorderLayout;
 import java.util.ArrayList;
@@ -27,7 +27,11 @@ public class FileTree extends JPanel {
 	public FileTree(Program program) {
 		this.callback = program;
 		//
-		tree.setCellRenderer(new JavaCellRenderer());
+		try {
+			tree.setCellRenderer(new JavaCellRenderer(callback));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		//
 		setLayout(new BorderLayout());
 		add(scrollTree, BorderLayout.CENTER);
@@ -61,10 +65,12 @@ public class FileTree extends JPanel {
 			generateTreePath(root, dirPath, mapping, model);
 		}
 		if (ignoreErr) {
-			// Ignore errors should be used ONLY if a heavily obfuscated jar cannot be loaded otherwise.
+			// Ignore errors should be used ONLY if a heavily obfuscated jar
+			// cannot be loaded otherwise.
 			try {
 				// In most jar files this shouldn't fail.
-				// It may fail in heavily obfuscated jars with odd unicode names.
+				// It may fail in heavily obfuscated jars with odd unicode
+				// names.
 				model.setRoot(SwingUtil.sort(root));
 			} catch (Exception e) {
 				// This is the backup that will work but looks ugly and isn't
@@ -163,7 +169,7 @@ public class FileTree extends JPanel {
 		tree.setModel(model);
 		// Iterate classes
 		for (String className : read.getMapping().getMappings().keySet()) {
-			if (!read.getClassEntries().containsKey(className)){
+			if (!read.getClassEntries().containsKey(className)) {
 				continue;
 			}
 			// Get mapping linked to class name
