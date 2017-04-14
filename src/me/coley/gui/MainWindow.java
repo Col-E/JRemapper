@@ -5,10 +5,15 @@ import javax.swing.JFrame;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,8 +33,8 @@ public class MainWindow {
 	private final JFrame frame = new JFrame();
 	private FileTree fileTree;
 	private JavaTextArea currentSource;
-	private JTabbedPane classTabs;
-	private Map<String, JavaTextArea> tabMap = new HashMap<>();
+	private JTabbedPane tabbedClasses;
+	private Map<String, JavaTextArea> tabToText = new HashMap<>();
 
 	/**
 	 * Create the application.
@@ -58,9 +63,33 @@ public class MainWindow {
 		}
 		// Setting up the decompile area
 		// Tabbed panel will have tabs containing JavaTextAreas.
-		classTabs = new JTabbedPane();
+		tabbedClasses = new JTabbedPane();
 		{
-			spMain.setRightComponent(classTabs);
+			// Keep a history of which classes were opened.
+			tabbedClasses.addChangeListener(new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					int tab = tabbedClasses.getSelectedIndex();
+
+					System.out.println("Tab is: " + (tab + 1));
+				}
+			});
+
+			// Add ability to middle-click tabs to close them.
+			tabbedClasses.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					if (SwingUtilities.isMiddleMouseButton(e)) {
+						int i = tabbedClasses.getSelectedIndex();
+						String title = tabbedClasses.getTitleAt(i);
+						if (tabToText.containsKey(title)) {
+							tabToText.remove(title);
+						}
+						tabbedClasses.remove(i);
+					}
+				}
+			});
+			spMain.setRightComponent(tabbedClasses);
 		}
 		// Setting up the menu
 		JMenuBar menuBar = new JMenuBar();
@@ -172,36 +201,36 @@ public class MainWindow {
 	 */
 	public void openTab(String title, String text) {
 		JTextArea textArea = new JTextArea(text);
-		this.classTabs.addTab(title, textArea);
+		this.tabbedClasses.addTab(title, textArea);
 	}
 
 	public void openSourceTab(String title, String decomp) {
 		// Try to get existing text area:
 		/// - If it does not exist, create a new tab.
 		/// - If it does exist, update content and set it as the current tab.
-		JavaTextArea javaArea = tabMap.get(title);
-		int index = classTabs.getTabCount();
+		JavaTextArea javaArea = tabToText.get(title);
+		int index = tabbedClasses.getTabCount();
 		if (javaArea == null) {
 			javaArea = new JavaTextArea(callback);
 			javaArea.setText(decomp);
-			classTabs.addTab(title, javaArea);
-			tabMap.put(title, javaArea);
-			classTabs.setSelectedIndex(index);
+			tabbedClasses.addTab(title, javaArea);
+			tabToText.put(title, javaArea);
+			tabbedClasses.setSelectedIndex(index);
 		} else {
 			// Re-decompile if option for refreshing is active
-			if (callback.getOptions().get(Options.REFRESH_ON_SELECT)){
+			if (callback.getOptions().get(Options.REFRESH_ON_SELECT)) {
 				int caret = javaArea.getCaretPosition();
 				javaArea.setText(decomp);
 				javaArea.setCaretPosition(caret);
 			}
 			// Find tab with title
-			for (int i = 0; i < classTabs.getTabCount(); i++) {
-				if (classTabs.getTitleAt(i).equals(title)) {
+			for (int i = 0; i < tabbedClasses.getTabCount(); i++) {
+				if (tabbedClasses.getTitleAt(i).equals(title)) {
 					index = i;
 					break;
 				}
 			}
-			classTabs.setSelectedIndex(index);
+			tabbedClasses.setSelectedIndex(index);
 		}
 		currentSource = javaArea;
 	}
