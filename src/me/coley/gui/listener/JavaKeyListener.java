@@ -23,7 +23,7 @@ public class JavaKeyListener implements KeyListener {
 	public void keyPressed(KeyEvent e) {
 		// Make sure the selection data isn't
 		// updated while the user is typing.
-		text.setCanParse(false);		
+		text.setCanParse(false);
 		int c = e.getKeyCode();
 		if (c == KeyEvent.VK_LEFT || c == KeyEvent.VK_RIGHT || c == KeyEvent.VK_UP || c == KeyEvent.VK_DOWN) {
 			// Movement via typing is exempted
@@ -70,7 +70,7 @@ public class JavaKeyListener implements KeyListener {
 				// TODO: Better positon reset
 				text.setCaretPosition(pos);
 			}
-			
+
 			text.setEditable(false);
 
 		} else if (c == KeyEvent.VK_SPACE) {

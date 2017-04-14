@@ -3,9 +3,6 @@ package me.coley;
 import java.awt.EventQueue;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -127,23 +124,28 @@ public class Program {
 	 * @param mapping
 	 */
 	public void onClassSelect(ClassMapping clazz) {
+		String originalName = clazz.name.original;
+		byte[] bytes = null;
 		try {
-			String originalName = clazz.name.original;
-			final byte[] bytes = ClassWriter.write(jar.getClassEntries().get(originalName));
+			bytes = ClassWriter.write(jar.getClassEntries().get(originalName));
 			if (bytes == null) {
 				// Failed to decompile
-				window.getSourceArea().setText("Error: Failed to get class bytes");
+				window.openTab("Error", "Error: Failed to sending bytes to CFR (BMF output was null)");
 			} else {
 				// Update
 				this.currentClass = clazz;
+				// window.getHistory().addHistory(clazz);
 				// Decompile using CFR, send text to the text-area.
-				PluginRunner pluginRunner = new PluginRunner(CFRSetting.toStringMap(), new CFRSourceImpl(bytes));
-				String decomp = pluginRunner.getDecompilationFor(originalName);
-				window.getSourceArea().setText(decomp);
+				try {
+					PluginRunner pluginRunner = new PluginRunner(CFRSetting.toStringMap(), new CFRSourceImpl(bytes));
+					String decomp = pluginRunner.getDecompilationFor(originalName);
+					window.openSourceTab(clazz.name.getValue(), decomp);
+				} catch (Exception e) {
+					window.openTab("Error", "Error: CFR failed to decompile this class:\n" + e.getMessage());
+				}
 			}
-		} catch (Exception e) {
-			// Failed to decompile
-			window.getSourceArea().setText(e.toString());
+		} catch (IOException e) {
+			window.openTab("Error", "Error: Failed to sending bytes to CFR (Could not recompile via BMF)\n\n" + e.getMessage());
 		}
 	}
 

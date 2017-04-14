@@ -11,7 +11,7 @@ public class ActionLoadMapping implements ActionListener {
 	private final Program callback;
 
 	public ActionLoadMapping(Program callback) {
-this.callback =callback;
+		this.callback = callback;
 	}
 
 	@Override

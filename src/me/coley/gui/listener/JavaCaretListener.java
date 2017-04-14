@@ -204,15 +204,16 @@ public class JavaCaretListener implements CaretListener {
 						// than java.lang.String) only the class's name can be
 						// compared, the package is ignored (bad, but IDK how to
 						// account for it easily).
-						if (sub.equals(this.word)){
+						if (sub.equals(this.word)) {
 							this.mappedClass = callback.getJarReader().getMapping().getMapping(cname);
 						}
 						// If the mapped class could not be found:
-						// TODO: Optimize this so the entire jar doesn't have to be iterated...
-						if (this.mappedClass == null){
-							for (String pre : callback.getJarReader().getClassEntries().keySet()){
+						// TODO: Optimize this so the entire jar doesn't have to
+						// be iterated...
+						if (this.mappedClass == null) {
+							for (String pre : callback.getJarReader().getClassEntries().keySet()) {
 								ClassMapping post = callback.getJarReader().getMapping().getMapping(pre);
-								if (post.name.getValue().equals(cname)){
+								if (post.name.getValue().equals(cname)) {
 									this.mappedClass = post;
 								}
 							}

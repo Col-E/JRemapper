@@ -12,6 +12,7 @@ public class CFRSourceImpl implements ClassFileSource {
 	public CFRSourceImpl(byte[] bytes) {
 		this.bytes = bytes;
 	}
+
 	@Override
 	public void informAnalysisRelativePathDetail(String s, String s1) {}
 

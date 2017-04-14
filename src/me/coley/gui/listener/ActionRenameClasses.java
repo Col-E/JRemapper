@@ -80,7 +80,8 @@ public class ActionRenameClasses implements ActionListener {
 				String s = vd.type.toDesc();
 				if (s.contains("/")) {
 					s = s.substring(s.lastIndexOf("/") + 1);
-				}	s = s.substring(0, s.length() - 1);
+				}
+				s = s.substring(0, s.length() - 1);
 				if (s.length() > 1) {
 					String s2 = s.substring(0, 1).toLowerCase() + s.substring(1);
 					return s2 + "_fd" + fieldCounter++;
@@ -99,7 +100,7 @@ public class ActionRenameClasses implements ActionListener {
 					return "void_mt" + methodCounter++;
 				} else {
 					String s = pt.toJavaName();
-					s = s.substring(0,1).toUpperCase() + s.substring(1);
+					s = s.substring(0, 1).toUpperCase() + s.substring(1);
 					return "get" + s + "_mt" + methodCounter++;
 				}
 			} else {
