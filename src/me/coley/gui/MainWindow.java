@@ -221,12 +221,15 @@ public class MainWindow {
 									public void actionPerformed(ActionEvent e) {
 										rename.getMapping().name.setValue(rename.getBefore());
 										/*
-										if (rename.getMapping() instanceof ClassMapping) {
-											callback.updateTreePath(rename.getMapping().name.original, rename.getBefore());
-										}
-										*/
+										 * if (rename.getMapping() instanceof
+										 * ClassMapping) {
+										 * callback.updateTreePath(rename.
+										 * getMapping().name.original,
+										 * rename.getBefore()); }
+										 */
 										callback.getHistory().onUndo(rename);
-										// TODO: This is a lazy fix, only the single class should need to be moved.
+										// TODO: This is a lazy fix, only the
+										// single class should need to be moved.
 										if (rename.getMapping() instanceof ClassMapping) {
 											callback.refreshTree();
 										}
@@ -314,6 +317,28 @@ public class MainWindow {
 			return false;
 		}
 		tabbedClasses.setSelectedIndex(index);
+		return true;
+	}
+
+	/**
+	 * Closes the tab by the given name. If no such tab exists nothing happens.
+	 * 
+	 * @param title
+	 *            Name of the tab to close.
+	 * @return true if success, false if failure.
+	 */
+	public boolean closeTab(String title) {
+		int index = -1;
+		for (int i = 0; i < tabbedClasses.getTabCount(); i++) {
+			if (tabbedClasses.getTitleAt(i).equals(title)) {
+				index = i;
+				break;
+			}
+		}
+		if (index == -1) {
+			return false;
+		}
+		tabbedClasses.remove(index);
 		return true;
 	}
 

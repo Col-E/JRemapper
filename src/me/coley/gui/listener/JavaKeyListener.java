@@ -39,13 +39,16 @@ public class JavaKeyListener implements KeyListener {
 				String orig = cm.name.original;
 				String origCut = orig.substring(orig.lastIndexOf("/") + 1);
 				String value = StringUtil.getWordAtIndex(text.getCaretPosition(), text.getText(), true);
+				String current =  cm.name.getValue();
 				// Update rename history
-				callback.getHistory().onRename(cm, cm.name.getValue(), value);
+				callback.getHistory().onRename(cm,current, value);
 				// Update tree path
 				// TODO: Account for inner classes with $ names
 				callback.updateTreePath(orig, value);
 				// Rename mapping
 				cm.name.setValue(value);
+				// Close tab with now outdated name
+callback.getWindow().closeTab(current);
 				// Update text area.
 				if (reg) {
 					String valueCut = cm.name.getValue().substring(cm.name.getValue().lastIndexOf("/") + 1);
