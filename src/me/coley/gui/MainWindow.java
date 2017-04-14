@@ -9,6 +9,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import io.github.bmf.mapping.ClassMapping;
+
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -18,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import me.coley.CFRSetting;
+import me.coley.History.RenameAction;
 import me.coley.Options;
 import me.coley.Program;
 import me.coley.gui.component.JavaTextArea;
@@ -69,9 +72,12 @@ public class MainWindow {
 			tabbedClasses.addChangeListener(new ChangeListener() {
 				@Override
 				public void stateChanged(ChangeEvent e) {
-					int tab = tabbedClasses.getSelectedIndex();
-
-					System.out.println("Tab is: " + (tab + 1));
+					int i = tabbedClasses.getSelectedIndex();
+					if (i < 0) {
+						return;
+					}
+					String title = tabbedClasses.getTitleAt(i);
+					callback.getHistory().onSelectClass(title);
 				}
 			});
 
@@ -167,11 +173,148 @@ public class MainWindow {
 					mnMapping.add(mnMapAll);
 				}
 			}
+			JMenu mnHistory = new JMenu("History");
+			{
+				JMenu mnHistSelection = new JMenu("Selections");
+				{
+					callback.getHistory().registerSelectionUpdate(new Runnable() {
+						@Override
+						public void run() {
+							mnHistSelection.removeAll();
+							for (String title : callback.getHistory().getSelectedClasses()) {
+								JMenuItem mntmSel = new JMenuItem(title);
+								mntmSel.addActionListener(new ActionListener() {
+									@Override
+									public void actionPerformed(ActionEvent e) {
+										boolean opened = selectTab(title);
+										if (!opened) {
+											// TODO: Get class by looking up
+											// renames
+											// This won't open renamed classes
+											// right now.
+											ClassMapping mc = callback.getJarReader().getMapping().getMapping(title);
+											if (mc != null) {
+												callback.onClassSelect(mc);
+											}
+										}
+									}
+								});
+								mnHistSelection.add(mntmSel);
+							}
+						}
+
+					});
+					mnHistory.add(mnHistSelection);
+				}
+				JMenu mnHistRename = new JMenu("Renames");
+				{
+					callback.getHistory().registerSelectionUpdate(new Runnable() {
+						@Override
+						public void run() {
+							mnHistRename.removeAll();
+							for (RenameAction rename : callback.getHistory().getRenameActions()) {
+								String title = rename.getBefore() + " -> " + rename.getAfter();
+								JMenuItem mntmRen = new JMenuItem(title);
+
+								mntmRen.addActionListener(new ActionListener() {
+									@Override
+									public void actionPerformed(ActionEvent e) {
+										rename.getMapping().name.setValue(rename.getBefore());
+										/*
+										if (rename.getMapping() instanceof ClassMapping) {
+											callback.updateTreePath(rename.getMapping().name.original, rename.getBefore());
+										}
+										*/
+										callback.getHistory().onUndo(rename);
+										// TODO: This is a lazy fix, only the single class should need to be moved.
+										if (rename.getMapping() instanceof ClassMapping) {
+											callback.refreshTree();
+										}
+									}
+								});
+
+								mnHistRename.add(mntmRen);
+							}
+						}
+
+					});
+					mnHistory.add(mnHistRename);
+				}
+			}
 			menuBar.add(mnFile);
 			menuBar.add(mnOptions);
 			menuBar.add(mnCfr);
 			menuBar.add(mnMapping);
+			menuBar.add(mnHistory);
 		}
+	}
+
+	/**
+	 * Opens a tab with a plaintext title and text.
+	 * 
+	 * @param title
+	 *            Tab title.
+	 * @param text
+	 *            Message.
+	 */
+	public void openTab(String title, String text) {
+		JTextArea textArea = new JTextArea(text);
+		this.tabbedClasses.addTab(title, textArea);
+	}
+
+	/**
+	 * Opens a tab with a title and decompiled class's contents.
+	 * 
+	 * @param title
+	 *            Tab title.
+	 * @param text
+	 *            Decompiled class contents.
+	 */
+	public void openSourceTab(String title, String text) {
+		// Try to get existing text area:
+		/// - If it does not exist, create a new tab.
+		/// - If it does exist, update content and set it as the current tab.
+		JavaTextArea javaArea = tabToText.get(title);
+		if (javaArea == null) {
+			int index = tabbedClasses.getTabCount();
+			javaArea = new JavaTextArea(callback);
+			javaArea.setText(text);
+			tabbedClasses.addTab(title, javaArea);
+			tabToText.put(title, javaArea);
+			tabbedClasses.setSelectedIndex(index);
+		} else {
+			// Re-decompile if option for refreshing is active
+			if (callback.getOptions().get(Options.REFRESH_ON_SELECT)) {
+				int caret = javaArea.getCaretPosition();
+				javaArea.setText(text);
+				javaArea.setCaretPosition(caret);
+			}
+			// Find tab with title
+			selectTab(title);
+		}
+		currentSource = javaArea;
+	}
+
+	/**
+	 * Sets the current tab based on a given title.
+	 * 
+	 * @param title
+	 *            Name of the tab to select.
+	 * @return true if success, false if failure.
+	 */
+	private boolean selectTab(String title) {
+		int index = -1;
+		for (int i = 0; i < tabbedClasses.getTabCount(); i++) {
+			if (tabbedClasses.getTitleAt(i).equals(title)) {
+				index = i;
+				break;
+			}
+		}
+		if (index == -1) {
+			return false;
+		}
+		tabbedClasses.setSelectedIndex(index);
+		return true;
 	}
 
 	public void setTitle(String string) {
@@ -189,49 +332,7 @@ public class MainWindow {
 		return fileTree;
 	}
 
-	public JavaTextArea getS2ourceArea() {
+	public JavaTextArea getSourceArea() {
 		return currentSource;
-	}
-
-	/**
-	 * Opens a
-	 * 
-	 * @param title
-	 * @param text
-	 */
-	public void openTab(String title, String text) {
-		JTextArea textArea = new JTextArea(text);
-		this.tabbedClasses.addTab(title, textArea);
-	}
-
-	public void openSourceTab(String title, String decomp) {
-		// Try to get existing text area:
-		/// - If it does not exist, create a new tab.
-		/// - If it does exist, update content and set it as the current tab.
-		JavaTextArea javaArea = tabToText.get(title);
-		int index = tabbedClasses.getTabCount();
-		if (javaArea == null) {
-			javaArea = new JavaTextArea(callback);
-			javaArea.setText(decomp);
-			tabbedClasses.addTab(title, javaArea);
-			tabToText.put(title, javaArea);
-			tabbedClasses.setSelectedIndex(index);
-		} else {
-			// Re-decompile if option for refreshing is active
-			if (callback.getOptions().get(Options.REFRESH_ON_SELECT)) {
-				int caret = javaArea.getCaretPosition();
-				javaArea.setText(decomp);
-				javaArea.setCaretPosition(caret);
-			}
-			// Find tab with title
-			for (int i = 0; i < tabbedClasses.getTabCount(); i++) {
-				if (tabbedClasses.getTitleAt(i).equals(title)) {
-					index = i;
-					break;
-				}
-			}
-			tabbedClasses.setSelectedIndex(index);
-		}
-		currentSource = javaArea;
 	}
 }

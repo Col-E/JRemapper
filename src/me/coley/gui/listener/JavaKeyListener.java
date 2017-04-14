@@ -39,6 +39,8 @@ public class JavaKeyListener implements KeyListener {
 				String orig = cm.name.original;
 				String origCut = orig.substring(orig.lastIndexOf("/") + 1);
 				String value = StringUtil.getWordAtIndex(text.getCaretPosition(), text.getText(), true);
+				// Update rename history
+				callback.getHistory().onRename(cm, cm.name.getValue(), value);
 				// Update tree path
 				// TODO: Account for inner classes with $ names
 				callback.updateTreePath(orig, value);
@@ -58,6 +60,8 @@ public class JavaKeyListener implements KeyListener {
 				String orig = mm.name.original;
 				String origCut = orig.substring(orig.lastIndexOf("/") + 1);
 				String value = StringUtil.getWordAtIndex(text.getCaretPosition(), text.getText(), true);
+				// Update rename history
+				callback.getHistory().onRename(mm, mm.name.getValue(), value);
 				// Rename mapping
 				mm.name.setValue(value);
 				// Update text area.

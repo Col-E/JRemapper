@@ -30,6 +30,10 @@ public class Program {
 	 * Options not pertaining to CFR.
 	 */
 	private Options options = new Options();
+	/**
+	 * Manager for keeping track of past actions.
+	 */
+	private History history = new History();
 
 	/**
 	 * Displays the GUI.
@@ -238,4 +242,12 @@ public class Program {
 		return options;
 	}
 
+	/**
+	 * Returns history manager.
+	 * 
+	 * @return
+	 */
+	public History getHistory() {
+		return history;
+	}
 }
