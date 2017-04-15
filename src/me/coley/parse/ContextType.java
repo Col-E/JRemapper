@@ -1,6 +1,6 @@
 package me.coley.parse;
 
-public enum LineContext {
+public enum ContextType {
 	//@formatter:off
 	PACKAGE,
 	IMPORT,

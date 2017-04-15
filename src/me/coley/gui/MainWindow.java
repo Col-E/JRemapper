@@ -5,7 +5,6 @@ import javax.swing.JFrame;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -85,8 +84,11 @@ public class MainWindow {
 			tabbedClasses.addMouseListener(new MouseAdapter() {
 				@Override
 				public void mouseClicked(MouseEvent e) {
-					if (SwingUtilities.isMiddleMouseButton(e)) {
+					if (e.getButton() == MouseEvent.BUTTON2) {
 						int i = tabbedClasses.getSelectedIndex();
+						if (i < 0){
+							return;
+						}
 						String title = tabbedClasses.getTitleAt(i);
 						if (tabToText.containsKey(title)) {
 							tabToText.remove(title);
@@ -343,7 +345,11 @@ public class MainWindow {
 	}
 
 	public void setTitle(String string) {
-		frame.setTitle("JRemapper: " + string);
+		if (string == null) {
+			frame.setTitle("JRemapper");
+		} else {
+			frame.setTitle("JRemapper: " + string);
+		}
 	}
 
 	/**

@@ -7,12 +7,13 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
 
+import io.github.bmf.mapping.AbstractMapping;
 import me.coley.Program;
 import me.coley.gui.listener.JavaCaretListener;
 import me.coley.gui.listener.JavaKeyListener;
 import me.coley.gui.listener.JavaMouseListener;
 import me.coley.parse.Context;
-import me.coley.parse.LineContext;
+import me.coley.parse.ContextType;
 
 @SuppressWarnings("serial")
 public class JavaTextArea extends JPanel {
@@ -27,7 +28,7 @@ public class JavaTextArea extends JPanel {
 	 * the user is typing in a new name for currently selected thing.
 	 */
 	private boolean parsing;
-
+	
 	public JavaTextArea(Program callback) {
 		context = new Context(callback);
 		//
@@ -94,20 +95,15 @@ public class JavaTextArea extends JPanel {
 	/**
 	 * Sets the text area's editable status.
 	 * 
-	 * @param vslue
+	 * @param value
 	 */
-	public void setEditable(boolean vslue) {
-		this.textArea.setEditable(vslue);
+	public void setEditable(boolean value) {
+		this.textArea.setEditable(value);
 	}
 
-	/**
-	 * Returns the given context of a line.
-	 * 
-	 * @param line
-	 * @return
-	 */
-	public LineContext getContext(int line) {
-		return context.getContextForLine(line);
+	
+	public AbstractMapping getSelectedMapping() {
+		return context.getMappingAtPoint(getCaretPosition());
 	}
 
 	/**
@@ -129,15 +125,6 @@ public class JavaTextArea extends JPanel {
 	}
 
 	/**
-	 * Returns the text area's caret listener.
-	 * 
-	 * @return
-	 */
-	public JavaCaretListener getCaretListener() {
-		return caret;
-	}
-
-	/**
 	 * Returns the text area's mouse listener.
 	 * 
 	 * @return
@@ -154,5 +141,4 @@ public class JavaTextArea extends JPanel {
 	public JavaKeyListener getKeyListener() {
 		return keys;
 	}
-
 }

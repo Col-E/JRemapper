@@ -1,7 +1,9 @@
 package me.coley;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import io.github.bmf.mapping.AbstractMapping;
 import io.github.bmf.mapping.ClassMapping;
@@ -12,6 +14,7 @@ public class History {
 	private final RollingList<RenameAction> renameActions = new RollingList<>(10);
 	private final List<Runnable> selectionListeners = new ArrayList<>();
 	private final List<Runnable> renameListeners = new ArrayList<>();
+	private final Map<String, AbstractMapping> renameToOriginal = new HashMap<>();
 
 	/**
 	 * Updates the list of classes that were selected.
@@ -56,6 +59,7 @@ public class History {
 	 */
 	public void onRename(AbstractMapping mapping, String before, String after) {
 		renameActions.add(new RenameAction(mapping, before, after));
+		renameToOriginal.put(after, mapping);
 		renameListeners.stream().forEach((r) -> r.run());
 	}
 
@@ -84,6 +88,16 @@ public class History {
 	 */
 	public List<RenameAction> getRenameActions() {
 		return renameActions.list;
+	}
+
+	/**
+	 * Returns the list of renamed names to the mapping instance associated with
+	 * the renaming.
+	 * 
+	 * @return
+	 */
+	public Map<String, AbstractMapping> getRenamedToMappingMap() {
+		return renameToOriginal;
 	}
 
 	public class RenameAction {
