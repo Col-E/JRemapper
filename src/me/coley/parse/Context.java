@@ -111,7 +111,7 @@ public class Context {
 		// Get mapping for referenced class, if it exists
 		// TODO: ability to lookup classes that have been renamed
 		ClassMapping cm = getClass(imported);
-		if (cm != null){
+		if (cm != null) {
 			fill(read, imported, cm);
 		}
 		// Get the simple name of the class and map it to the fully
@@ -243,10 +243,11 @@ public class Context {
 						argType = read.nextWord();
 					}
 					// Read array level from type
-					while (argType.contains("[]")){
+					while (argType.contains("[]")) {
 						argType = argType.substring(0, argType.length() - 2);
 						arrayDepth++;
 					}
+					// Fetch the arg's desc representation
 					String desc = null;
 					if (ID_LANG.contains(argType)) {
 						desc = ID_LANG_SYMBOL.get(ID_LANG.indexOf(argType));
@@ -259,22 +260,26 @@ public class Context {
 							fill(read, argType, cm);
 						}
 						desc = "L" + argTypeFull + ";";
-						
+
 					}
 					// Add array level to arg in desc
-					while (arrayDepth > 0){
+					while (arrayDepth > 0) {
 						sbDesc.append("[");
 						arrayDepth--;
 					}
+					// Append to method desc
 					sbDesc.append(desc);
 					arrayDepth = 0;
 					String argName = read.nextWord();
+					// Check if there are more args to parse or break the reader
+					// loop if there are none.
 					if (argName.endsWith(",")) {
 						argType = read.nextWord();
 					} else {
 						break;
 					}
 				}
+				// Finish up the method descriptor and 
 				sbDesc.append(")" + retType);
 				MemberMapping mm = callback.getCurrentClass().getMemberMapping(name, sbDesc.toString());
 				if (mm != null) {

@@ -31,7 +31,9 @@ public class JavaCaretListener implements CaretListener {
 		boolean clazz = am instanceof ClassMapping;
 		if (am == null) {
 			callback.getWindow().setTitle("?");
+			callback.getWindow().getSourceArea().setEditable(false);
 		} else {
+			callback.getWindow().getSourceArea().setEditable(true);
 			if (clazz){
 				callback.getWindow().setTitle("C : " + am.name.getValue());
 			} else {
