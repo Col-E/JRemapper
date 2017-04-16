@@ -31,7 +31,6 @@ public class JavaKeyListener implements KeyListener {
 			text.setCanParse(true);
 		} else if (c == KeyEvent.VK_ENTER) {
 			e.consume();
-			System.out.println("    ENTER     " );
 			// Send result
 			AbstractMapping am = text.getSelectedMapping();
 			ClassMapping cm = am instanceof ClassMapping ? (ClassMapping) am : null;
@@ -50,8 +49,10 @@ public class JavaKeyListener implements KeyListener {
 				callback.updateTreePath(orig, value);
 				// Rename mapping
 				cm.name.setValue(value);
-				// Close tab with now outdated name
-				callback.getWindow().closeTab(current);
+				if (cm.equals(callback.getCurrentClass())) {
+					// Close tab with now outdated name
+					callback.getWindow().closeTab(current);
+				}
 				// Update text area.
 				if (reg) {
 					String valueCut = cm.name.getValue().substring(cm.name.getValue().lastIndexOf("/") + 1);
@@ -80,9 +81,7 @@ public class JavaKeyListener implements KeyListener {
 				// TODO: Better positon reset
 				text.setCaretPosition(pos);
 			}
-
 			text.setEditable(false);
-
 		} else if (c == KeyEvent.VK_SPACE) {
 			// Replace word with package
 		} else {

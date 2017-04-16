@@ -16,6 +16,8 @@ public class Context {
 			"volatile");
 	private final static List<String> ID_PRIMITIVES = Arrays.asList("void", "boolean", "byte", "char", "short", "int", "long", "float", "double");
 	private final static List<String> ID_PRIMITIVES_SYMBOL = Arrays.asList("V", "Z", "B", "C", "S", "I", "J", "F", "D");
+	private final static List<String> ID_LANG = Arrays.asList("String", "System");
+	private final static List<String> ID_LANG_SYMBOL = Arrays.asList("Ljava/lang/String;", "Ljava/lang/System;");
 	private final static String ID_PACKAGE = "package";
 	private final static String ID_IMPORT = "import";
 	private final static String ID_CLASS = "class";
@@ -23,6 +25,7 @@ public class Context {
 	private final static String ID_IMPLEMENTS = "implements";
 	private final static String ID_EXTENDS = "extends";
 	private final static String ID_ENUM = "enum";
+	private final static String ID_FINAL = "final";
 	private final static boolean debug = false;
 	private ClassType thisType;
 	private Map<String, String> simpleToQuantified = new HashMap<>();
@@ -73,6 +76,10 @@ public class Context {
 					// TODO: What if there are no modifiers? IE: Default access
 					if (ID_MODIFIERS.contains(elem)) {
 						while (ID_MODIFIERS.contains(elem)) {
+							elem = read.nextWord();
+						}
+						if (elem.equals("/*")){
+							read.skipWords(2);
 							elem = read.nextWord();
 						}
 						readMember(read, currentSimple, elem);
@@ -163,8 +170,15 @@ public class Context {
 		// Get the return type
 		if (ID_PRIMITIVES.contains(type)) {
 			retType = ID_PRIMITIVES_SYMBOL.get(ID_PRIMITIVES.indexOf(type));
+		} else if (ID_LANG.contains(type)) {
+			retType = ID_LANG_SYMBOL.get(ID_LANG.indexOf(type));
 		} else if (simpleToQuantified.containsKey(type)) {
-			retType = "L" + simpleToQuantified.get(type) + ";";
+			String full = simpleToQuantified.get(type);
+			retType = "L" + full + ";";
+			ClassMapping cm = getClass(full);
+			if (cm != null) {
+				fill(read, type, cm);
+			}
 		} else if (type.startsWith(currentSimple + "(")) {
 			// This is a constructor
 			name = "<init>";
@@ -201,7 +215,55 @@ public class Context {
 
 		// Handle parsing data
 		if (isDataOfMethod) {
-			if (debug) System.out.println(" TYPE: " + retType + " : " + name);
+			// if (debug)
+			System.out.println(" TYPE: " + retType + " : " + name + " : " + data);
+			// public void showGui() {
+			// public void onFileSelect(File file) {
+
+			// No arguments for method
+			if (data.endsWith("()")) {
+				MemberMapping mm = callback.getCurrentClass().getMemberMapping(name, "()" + retType);
+				if (mm != null) {
+					fill(read, name, mm, 2);
+				}
+			} else {
+				int nameIndex = read.getIndex() - (data.length() - data.indexOf("("));
+
+				// Has args
+				String argType = data.substring(data.indexOf("(") + 1);
+				StringBuilder sbDesc = new StringBuilder("(");
+				while (true) {
+					while (argType.equals(ID_FINAL)) {
+						argType = read.nextWord();
+					}
+					if (ID_LANG.contains(argType)) {
+						String value = ID_LANG_SYMBOL.get(ID_LANG.indexOf(argType));
+						sbDesc.append(value);
+					} else if (ID_PRIMITIVES.contains(argType)) {
+						String prim = ID_PRIMITIVES_SYMBOL.get(ID_PRIMITIVES.indexOf(argType));
+						sbDesc.append(prim);
+					} else {
+						String argTypeFull = simpleToQuantified.get(argType);
+						ClassMapping cm = getClass(argTypeFull);
+						if (cm != null) {
+							fill(read, argType, cm);
+						}
+						sbDesc.append("L" + argTypeFull + ";");
+					}
+					String argName = read.nextWord();
+					if (argName.endsWith(",")) {
+						argType = read.nextWord();
+					} else {
+						break;
+					}
+				}
+				sbDesc.append(")" + retType);
+				System.out.println("\t\tDESCRIPTOR: " + sbDesc.toString());
+				MemberMapping mm = callback.getCurrentClass().getMemberMapping(name, sbDesc.toString());
+				if (mm != null) {
+					fill(read, name, mm, read.getIndex() - nameIndex);
+				}
+			}
 		} else {
 			MemberMapping mm = callback.getCurrentClass().getMemberMapping(name, retType);
 			if (mm != null) {
@@ -248,7 +310,8 @@ public class Context {
 		int index = read.getIndex();
 		int start = index - element.length() - leftShift;
 		int end = index - leftShift;
-		if (debug) System.out.println("\t" + start + ":" + end + " -> " + mapping.name.original);
+		// if (debug)
+		System.out.println("\t" + start + ":" + end + " -> " + mapping.name.original);
 		Arrays.fill(mappings, start, end, mapping);
 	}
 

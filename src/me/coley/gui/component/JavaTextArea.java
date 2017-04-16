@@ -22,13 +22,14 @@ public class JavaTextArea extends JPanel {
 	private final JavaCaretListener caret;
 	private final JavaMouseListener mouse;
 	private final JavaKeyListener keys;
+	private AbstractMapping lastMapping;
 	private Context context;
 	/**
 	 * If true, moving mouse around is selecting new things. Set to false while
 	 * the user is typing in a new name for currently selected thing.
 	 */
 	private boolean parsing;
-	
+
 	public JavaTextArea(Program callback) {
 		context = new Context(callback);
 		//
@@ -101,9 +102,12 @@ public class JavaTextArea extends JPanel {
 		this.textArea.setEditable(value);
 	}
 
-	
 	public AbstractMapping getSelectedMapping() {
-		return context.getMappingAtPoint(getCaretPosition());
+		if (parsing) {
+			return lastMapping = context.getMappingAtPoint(getCaretPosition());
+		} else {
+			return lastMapping;
+		}
 	}
 
 	/**

@@ -30,7 +30,7 @@ public class JavaCaretListener implements CaretListener {
 		AbstractMapping am = text.getSelectedMapping();
 		boolean clazz = am instanceof ClassMapping;
 		if (am == null) {
-			callback.getWindow().setTitle("????");
+			callback.getWindow().setTitle("?");
 		} else {
 			if (clazz){
 				callback.getWindow().setTitle("C : " + am.name.getValue());
@@ -40,7 +40,6 @@ public class JavaCaretListener implements CaretListener {
 				callback.getWindow().setTitle(prefix + " : " + am.name.getValue());
 			}
 			text.setEditable(true);
-			
 		}
 	}
 }
