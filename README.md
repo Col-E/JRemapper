@@ -21,7 +21,7 @@ An easy to use GUI for remapping classes, methods, and fields of compiled java p
 2. Type a new name
 3. Press enter
 
-**More tips***:
+**More tips**:
 
 * Middle click a tab you want to close
 * Right click a class to bring up a menu *(Currently only lets you open the class in a new tab)*
