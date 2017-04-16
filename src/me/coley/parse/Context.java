@@ -82,13 +82,14 @@ public class Context {
 							elem = read.nextWord();
 						}
 						readMember(read, currentSimple, elem);
-					} else if (thisType == ClassType.Enum){
-						if (elem.endsWith(",") || elem.endsWith(";")){
-							
+					} else if (thisType == ClassType.Enum) {
+						if (elem.endsWith(",") || elem.endsWith(";")) {
+
 						}
 					}
 					// TODO: What if there are no modifiers? IE: Default access
-					// How would it be checked if it's a member and not some random data?
+					// How would it be checked if it's a member and not some
+					// random data?
 					//
 					// else { readMember(read, currentSimple, elem); }
 					//
@@ -165,8 +166,16 @@ public class Context {
 			} else if (elem.equals(ID_IMPLEMENTS) || elem.equals(ID_EXTENDS)) {
 				// extends, implements
 				String clazz = read.nextWord();
-				if (debug)
+				if (simpleToQuantified.containsKey(clazz)) {
+					ClassMapping cm = getClass(simpleToQuantified.get(clazz));
+					if (cm != null) {
+						fill(read, clazz, cm);
+					} else if (debug) {
+						System.out.println("MISSING EXTENDING / IMPLEMENTS: " + clazz);
+					}
+				} else if (debug) {
 					System.out.println("MISSING EXTENDING / IMPLEMENTS: " + clazz);
+				}
 			}
 		}
 		return lastType;
@@ -174,16 +183,22 @@ public class Context {
 
 	private void readMember(IndexableStringReader read, String currentSimple, String elem) throws IOException {
 		String name = null;
-		String retType = null;
+		String retType = "";
+		String retTypeSuffic = null;
 		String type = elem;
+		int arrayDepth = 0;
+		while (type.contains("[]")) {
+			type = type.substring(0, type.length() - 2);
+			arrayDepth++;
+		}
 		// Get the return type
 		if (ID_PRIMITIVES.contains(type)) {
-			retType = ID_PRIMITIVES_SYMBOL.get(ID_PRIMITIVES.indexOf(type));
+			retTypeSuffic = ID_PRIMITIVES_SYMBOL.get(ID_PRIMITIVES.indexOf(type));
 		} else if (ID_LANG.contains(type)) {
-			retType = ID_LANG_SYMBOL.get(ID_LANG.indexOf(type));
+			retTypeSuffic = ID_LANG_SYMBOL.get(ID_LANG.indexOf(type));
 		} else if (simpleToQuantified.containsKey(type)) {
 			String full = simpleToQuantified.get(type);
-			retType = "L" + full + ";";
+			retTypeSuffic = "L" + full + ";";
 			ClassMapping cm = getClass(full);
 			if (cm != null) {
 				fill(read, type, cm);
@@ -191,13 +206,19 @@ public class Context {
 		} else if (type.startsWith(currentSimple + "(")) {
 			// This is a constructor
 			name = "<init>";
-			retType = "V";
+			retTypeSuffic = "V";
 			int offset = type.length() - type.indexOf("(");
 			fill(read, currentSimple, callback.getCurrentClass(), offset);
 		} else {
 			if (debug)
 				System.out.println("UNKNOWN MEMBER TYPE: " + type);
 		}
+		// Prepend array for depth-times
+		while (arrayDepth > 0) {
+			retType += "[";
+			arrayDepth--;
+		}
+		retType += retTypeSuffic;
 		// The name is set only if a constructor is detected.
 		// Data should end up being:
 		// - Field name + ';'
@@ -236,7 +257,7 @@ public class Context {
 				// Record current point read index is at.
 				// Used for calculating the range to fill the member mapping at.
 				int nameIndex = read.getIndex() - (data.length() - data.indexOf("("));
-				int arrayDepth = 0;
+				arrayDepth = 0;
 				String argType = data.substring(data.indexOf("(") + 1);
 				// Collect arguments to build the full method desc.
 				StringBuilder sbDesc = new StringBuilder("(");
