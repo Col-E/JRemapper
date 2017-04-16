@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import io.github.bmf.mapping.AbstractMapping;
-import io.github.bmf.mapping.ClassMapping;
-import me.coley.History.RenameAction;
 
 public class History {
 	private final RollingList<String> selectedClasses = new RollingList<>(10);

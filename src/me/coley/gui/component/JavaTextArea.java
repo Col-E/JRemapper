@@ -13,7 +13,6 @@ import me.coley.gui.listener.JavaCaretListener;
 import me.coley.gui.listener.JavaKeyListener;
 import me.coley.gui.listener.JavaMouseListener;
 import me.coley.parse.Context;
-import me.coley.parse.ContextType;
 
 @SuppressWarnings("serial")
 public class JavaTextArea extends JPanel {
@@ -41,6 +40,8 @@ public class JavaTextArea extends JPanel {
 		textArea.setAntiAliasingEnabled(true);
 		textArea.setCodeFoldingEnabled(true);
 		textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
+		textArea.setComponentPopupMenu(null);
+		textArea.setPopupMenu(null);
 		//
 		caret = new JavaCaretListener(callback, this);
 		mouse = new JavaMouseListener(callback, this);

@@ -73,7 +73,6 @@ public class Context {
 				} else if (!inBody(lastType)) {
 					lastType = readHeader(read, lastType, currentSimple, elem);
 				} else {
-					// TODO: What if there are no modifiers? IE: Default access
 					if (ID_MODIFIERS.contains(elem)) {
 						while (ID_MODIFIERS.contains(elem)) {
 							elem = read.nextWord();
@@ -83,12 +82,18 @@ public class Context {
 							elem = read.nextWord();
 						}
 						readMember(read, currentSimple, elem);
-					} else {
-						/*
-						 * System.out.println(">>>>" + lastType + ":" +
-						 * read.getIndex() + ":" + elem);
-						 */
+					} else if (thisType == ClassType.Enum){
+						if (elem.endsWith(",") || elem.endsWith(";")){
+							
+						}
 					}
+					// TODO: What if there are no modifiers? IE: Default access
+					// How would it be checked if it's a member and not some random data?
+					//
+					// else { readMember(read, currentSimple, elem); }
+					//
+					// TODO: Method body parsing.
+					// 'this.FIELD_NAME' and 'new CLASS_NAME()`
 				}
 			}
 		} catch (Exception e) {
@@ -220,11 +225,6 @@ public class Context {
 
 		// Handle parsing data
 		if (isDataOfMethod) {
-			if (debug)
-				System.out.println(" TYPE: " + retType + " : " + name + " : " + data);
-			// public void showGui() {
-			// public void onFileSelect(File file) {
-
 			// No arguments for method
 			if (data.endsWith("()")) {
 				MemberMapping mm = callback.getCurrentClass().getMemberMapping(name, "()" + retType);
@@ -232,11 +232,13 @@ public class Context {
 					fill(read, name, mm, 2);
 				}
 			} else {
-				int nameIndex = read.getIndex() - (data.length() - data.indexOf("("));
-
 				// Has args
+				// Record current point read index is at.
+				// Used for calculating the range to fill the member mapping at.
+				int nameIndex = read.getIndex() - (data.length() - data.indexOf("("));
 				int arrayDepth = 0;
 				String argType = data.substring(data.indexOf("(") + 1);
+				// Collect arguments to build the full method desc.
 				StringBuilder sbDesc = new StringBuilder("(");
 				while (true) {
 					while (argType.equals(ID_FINAL)) {
@@ -279,7 +281,7 @@ public class Context {
 						break;
 					}
 				}
-				// Finish up the method descriptor and 
+				// Finish up the method descriptor and
 				sbDesc.append(")" + retType);
 				MemberMapping mm = callback.getCurrentClass().getMemberMapping(name, sbDesc.toString());
 				if (mm != null) {
@@ -287,6 +289,7 @@ public class Context {
 				}
 			}
 		} else {
+			// Fields are super simple
 			MemberMapping mm = callback.getCurrentClass().getMemberMapping(name, retType);
 			if (mm != null) {
 				fill(read, name, mm, fieldDeclared ? 0 : 1);

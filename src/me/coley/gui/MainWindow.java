@@ -293,7 +293,6 @@ public class MainWindow {
 				int caret = javaArea.getCaretPosition();
 				javaArea.setText(text);
 				javaArea.setCaretPosition(caret);
-				System.out.println("Update");
 			}
 			// Find tab with title
 			selectTab(title);
