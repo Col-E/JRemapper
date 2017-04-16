@@ -280,7 +280,6 @@ public class MainWindow {
 		/// - If it does not exist, create a new tab.
 		/// - If it does exist, update content and set it as the current tab.
 		JavaTextArea javaArea = tabToText.get(title);
-		System.out.println("SRC: " + title);
 		if (javaArea == null) {
 			int index = tabbedClasses.getTabCount();
 			javaArea = new JavaTextArea(callback);

@@ -26,7 +26,7 @@ public class Context {
 	private final static String ID_EXTENDS = "extends";
 	private final static String ID_ENUM = "enum";
 	private final static String ID_FINAL = "final";
-	private final static boolean debug = false;
+	private final static boolean debug = true;
 	private ClassType thisType;
 	private Map<String, String> simpleToQuantified = new HashMap<>();
 	private ContextType[] context;
@@ -78,7 +78,7 @@ public class Context {
 						while (ID_MODIFIERS.contains(elem)) {
 							elem = read.nextWord();
 						}
-						if (elem.equals("/*")){
+						if (elem.equals("/*")) {
 							read.skipWords(2);
 							elem = read.nextWord();
 						}
@@ -111,7 +111,9 @@ public class Context {
 		// Get mapping for referenced class, if it exists
 		// TODO: ability to lookup classes that have been renamed
 		ClassMapping cm = getClass(imported);
-		fill(read, imported, cm);
+		if (cm != null){
+			fill(read, imported, cm);
+		}
 		// Get the simple name of the class and map it to the fully
 		// quantified name.
 		// Used for parsing body contents since the body uses the
@@ -145,7 +147,8 @@ public class Context {
 				} else {
 					// Declared class is not the one selected from
 					// the class tree menu...
-					System.out.println("NON-CURRENT CLASS: " + clazz);
+					if (debug)
+						System.out.println("NON-CURRENT CLASS: " + clazz);
 				}
 				lastType = Segment.CLASS;
 			}
@@ -157,7 +160,8 @@ public class Context {
 			} else if (elem.equals(ID_IMPLEMENTS) || elem.equals(ID_EXTENDS)) {
 				// extends, implements
 				String clazz = read.nextWord();
-				System.out.println("EXTENDING / IMPLEMENTS: " + clazz);
+				if (debug)
+					System.out.println("MISSING EXTENDING / IMPLEMENTS: " + clazz);
 			}
 		}
 		return lastType;
@@ -186,7 +190,8 @@ public class Context {
 			int offset = type.length() - type.indexOf("(");
 			fill(read, currentSimple, callback.getCurrentClass(), offset);
 		} else {
-			System.out.println("UNKNOWN MEMBER TYPE: " + type);
+			if (debug)
+				System.out.println("UNKNOWN MEMBER TYPE: " + type);
 		}
 		// The name is set only if a constructor is detected.
 		// Data should end up being:
@@ -215,8 +220,8 @@ public class Context {
 
 		// Handle parsing data
 		if (isDataOfMethod) {
-			// if (debug)
-			System.out.println(" TYPE: " + retType + " : " + name + " : " + data);
+			if (debug)
+				System.out.println(" TYPE: " + retType + " : " + name + " : " + data);
 			// public void showGui() {
 			// public void onFileSelect(File file) {
 
@@ -230,26 +235,39 @@ public class Context {
 				int nameIndex = read.getIndex() - (data.length() - data.indexOf("("));
 
 				// Has args
+				int arrayDepth = 0;
 				String argType = data.substring(data.indexOf("(") + 1);
 				StringBuilder sbDesc = new StringBuilder("(");
 				while (true) {
 					while (argType.equals(ID_FINAL)) {
 						argType = read.nextWord();
 					}
+					// Read array level from type
+					while (argType.contains("[]")){
+						argType = argType.substring(0, argType.length() - 2);
+						arrayDepth++;
+					}
+					String desc = null;
 					if (ID_LANG.contains(argType)) {
-						String value = ID_LANG_SYMBOL.get(ID_LANG.indexOf(argType));
-						sbDesc.append(value);
+						desc = ID_LANG_SYMBOL.get(ID_LANG.indexOf(argType));
 					} else if (ID_PRIMITIVES.contains(argType)) {
-						String prim = ID_PRIMITIVES_SYMBOL.get(ID_PRIMITIVES.indexOf(argType));
-						sbDesc.append(prim);
+						desc = ID_PRIMITIVES_SYMBOL.get(ID_PRIMITIVES.indexOf(argType));
 					} else {
 						String argTypeFull = simpleToQuantified.get(argType);
 						ClassMapping cm = getClass(argTypeFull);
 						if (cm != null) {
 							fill(read, argType, cm);
 						}
-						sbDesc.append("L" + argTypeFull + ";");
+						desc = "L" + argTypeFull + ";";
+						
 					}
+					// Add array level to arg in desc
+					while (arrayDepth > 0){
+						sbDesc.append("[");
+						arrayDepth--;
+					}
+					sbDesc.append(desc);
+					arrayDepth = 0;
 					String argName = read.nextWord();
 					if (argName.endsWith(",")) {
 						argType = read.nextWord();
@@ -258,7 +276,6 @@ public class Context {
 					}
 				}
 				sbDesc.append(")" + retType);
-				System.out.println("\t\tDESCRIPTOR: " + sbDesc.toString());
 				MemberMapping mm = callback.getCurrentClass().getMemberMapping(name, sbDesc.toString());
 				if (mm != null) {
 					fill(read, name, mm, read.getIndex() - nameIndex);
@@ -310,8 +327,8 @@ public class Context {
 		int index = read.getIndex();
 		int start = index - element.length() - leftShift;
 		int end = index - leftShift;
-		// if (debug)
-		System.out.println("\t" + start + ":" + end + " -> " + mapping.name.original);
+		if (debug)
+			System.out.println("\t" + start + ":" + end + " -> " + mapping.name.original);
 		Arrays.fill(mappings, start, end, mapping);
 	}
 
