@@ -7,7 +7,7 @@ An easy to use GUI for remapping classes, methods, and fields of compiled java p
 
 1. Run the executable jar
 2. From the File menu, load a jar _(Creates a listing of class files)_
-3. Select a class file _(This will decompile it with CFR)_
+3. Select a class file from the tree menu on the left _(This will decompile it with CFR)_
 
 **Renaming a class**:
 

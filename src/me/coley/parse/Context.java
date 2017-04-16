@@ -16,8 +16,8 @@ public class Context {
 			"volatile");
 	private final static List<String> ID_PRIMITIVES = Arrays.asList("void", "boolean", "byte", "char", "short", "int", "long", "float", "double");
 	private final static List<String> ID_PRIMITIVES_SYMBOL = Arrays.asList("V", "Z", "B", "C", "S", "I", "J", "F", "D");
-	private final static List<String> ID_LANG = Arrays.asList("String", "System");
-	private final static List<String> ID_LANG_SYMBOL = Arrays.asList("Ljava/lang/String;", "Ljava/lang/System;");
+	private final static List<String> ID_LANG = Arrays.asList("String", "System", "StringBuilder");
+	private final static List<String> ID_LANG_SYMBOL = Arrays.asList("Ljava/lang/String;", "Ljava/lang/System;", "Ljava/lang/StringBuilder;");
 	private final static String ID_PACKAGE = "package";
 	private final static String ID_IMPORT = "import";
 	private final static String ID_CLASS = "class";
@@ -26,7 +26,7 @@ public class Context {
 	private final static String ID_EXTENDS = "extends";
 	private final static String ID_ENUM = "enum";
 	private final static String ID_FINAL = "final";
-	private final static boolean debug = true;
+	private final static boolean debug = false;
 	private ClassType thisType;
 	private Map<String, String> simpleToQuantified = new HashMap<>();
 	private ContextType[] context;
