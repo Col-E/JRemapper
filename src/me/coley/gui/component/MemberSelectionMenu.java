@@ -11,10 +11,10 @@ import io.github.bmf.mapping.ClassMapping;
 import me.coley.Program;
 
 @SuppressWarnings("serial")
-public class MyPopupMenu extends JPopupMenu {
+public class MemberSelectionMenu extends JPopupMenu {
 
-	public MyPopupMenu(Program callback, JavaTextArea text) {
-		super("meme");
+	public MemberSelectionMenu(Program callback, JavaTextArea text) {
+		super("Selection:" + text.getSelectedMapping().name.getValue());
 		AbstractMapping am = text.getSelectedMapping();
 		if (am instanceof ClassMapping) {
 			ClassMapping cm = (ClassMapping) am;

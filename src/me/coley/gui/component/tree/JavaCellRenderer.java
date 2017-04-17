@@ -1,4 +1,4 @@
-package me.coley.gui;
+package me.coley.gui.component.tree;
 
 import java.awt.Component;
 import java.awt.Toolkit;
@@ -12,7 +12,6 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import io.github.bmf.ClassNode;
 import io.github.bmf.util.Access;
 import me.coley.Program;
-import me.coley.gui.component.tree.MappingTreeNode;
 
 /**
  * Slightly modified from Luyten's.

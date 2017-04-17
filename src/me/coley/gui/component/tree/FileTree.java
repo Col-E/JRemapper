@@ -14,7 +14,6 @@ import io.github.bmf.JarReader;
 import io.github.bmf.mapping.ClassMapping;
 import me.coley.Options;
 import me.coley.Program;
-import me.coley.gui.JavaCellRenderer;
 import me.coley.gui.listener.FileSelectionListener;
 import me.coley.util.SwingUtil;
 

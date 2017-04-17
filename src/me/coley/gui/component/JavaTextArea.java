@@ -12,7 +12,7 @@ import me.coley.Program;
 import me.coley.gui.listener.JavaCaretListener;
 import me.coley.gui.listener.JavaKeyListener;
 import me.coley.gui.listener.JavaMouseListener;
-import me.coley.parse.Context;
+import me.coley.gui.parse.Context;
 
 @SuppressWarnings("serial")
 public class JavaTextArea extends JPanel {

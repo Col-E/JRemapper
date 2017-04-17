@@ -11,6 +11,7 @@ import io.github.bmf.ClassWriter;
 import io.github.bmf.JarReader;
 import io.github.bmf.mapping.ClassMapping;
 import me.coley.gui.MainWindow;
+import me.coley.search.Search;
 
 public class Program {
 	private JarReader jar;
@@ -34,6 +35,10 @@ public class Program {
 	 * Manager for keeping track of past actions.
 	 */
 	private History history = new History();
+	/**
+	 * Search handler
+	 */
+	private Search searcher = new Search();
 
 	/**
 	 * Displays the GUI.
@@ -249,5 +254,14 @@ public class Program {
 	 */
 	public History getHistory() {
 		return history;
+	}
+
+	/**
+	 * Returns search handler.
+	 * 
+	 * @return
+	 */
+	public Search getSearcher() {
+		return searcher;
 	}
 }

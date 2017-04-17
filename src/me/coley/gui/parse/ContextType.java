@@ -1,4 +1,4 @@
-package me.coley.parse;
+package me.coley.gui.parse;
 
 public enum ContextType {
 	//@formatter:off

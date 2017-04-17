@@ -2,7 +2,6 @@ package me.coley.gui;
 
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
-import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.event.ChangeEvent;
@@ -23,6 +22,8 @@ import me.coley.History.RenameAction;
 import me.coley.Options;
 import me.coley.Program;
 import me.coley.gui.component.JavaTextArea;
+import me.coley.gui.component.NSplitPane;
+import me.coley.gui.component.SearchPanel;
 import me.coley.gui.component.tree.FileTree;
 import me.coley.gui.listener.*;
 
@@ -33,10 +34,12 @@ import javax.swing.JMenuItem;
 public class MainWindow {
 	private final Program callback;
 	private final JFrame frame = new JFrame();
-	private FileTree fileTree;
+	private FileTree pnlFileTree;
+	private SearchPanel pnlSearch;
+	private JTabbedPane pnlTabbedSources;
+	private Map<String, JavaTextArea> tabToSource = new HashMap<>();
 	private JavaTextArea currentSource;
-	private JTabbedPane tabbedClasses;
-	private Map<String, JavaTextArea> tabToText = new HashMap<>();
+
 
 	/**
 	 * Create the application.
@@ -49,57 +52,76 @@ public class MainWindow {
 	 * Initialize the contents of the frame.
 	 */
 	public void initialize() {
-		JSplitPane spMain = new JSplitPane();
+		// Setting up the main 3-way view
+		setupSplitView();
+		// Setting up the menu
+		setupMenu();
+	}
+
+	private void setupSplitView() {
+		NSplitPane nsplit = new NSplitPane(3);
 		// Setting up the frame
 		{
-			spMain.setDividerLocation(200);
+			// spMain.setDividerLocation(200);
 			frame.setTitle("JRemapper");
-			frame.setBounds(100, 100, 867, 578);
+			frame.setBounds(100, 100, 920, 578);
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			frame.getContentPane().add(spMain, BorderLayout.CENTER);
+			frame.getContentPane().add(nsplit, BorderLayout.CENTER);
 		}
 		// Setting up the file tree for jar layouts
-		fileTree = new FileTree(callback);
+		pnlFileTree = new FileTree(callback);
 		{
-			spMain.setLeftComponent(fileTree);
+			nsplit.addNComponent(0, 200, pnlFileTree);
+			// spMain.setLeftComponent(fileTree);
 		}
 		// Setting up the decompile area
 		// Tabbed panel will have tabs containing JavaTextAreas.
-		tabbedClasses = new JTabbedPane();
+		pnlTabbedSources = new JTabbedPane();
 		{
 			// Keep a history of which classes were opened.
-			tabbedClasses.addChangeListener(new ChangeListener() {
+			pnlTabbedSources.addChangeListener(new ChangeListener() {
 				@Override
 				public void stateChanged(ChangeEvent e) {
-					int i = tabbedClasses.getSelectedIndex();
+					int i = pnlTabbedSources.getSelectedIndex();
 					if (i < 0) {
 						return;
 					}
-					String title = tabbedClasses.getTitleAt(i);
+					String title = pnlTabbedSources.getTitleAt(i);
 					callback.getHistory().onSelectClass(title);
 				}
 			});
 
 			// Add ability to middle-click tabs to close them.
-			tabbedClasses.addMouseListener(new MouseAdapter() {
+			pnlTabbedSources.addMouseListener(new MouseAdapter() {
 				@Override
 				public void mouseClicked(MouseEvent e) {
 					if (e.getButton() == MouseEvent.BUTTON2) {
-						int i = tabbedClasses.getSelectedIndex();
-						if (i < 0){
+						int i = pnlTabbedSources.getSelectedIndex();
+						if (i < 0) {
 							return;
 						}
-						String title = tabbedClasses.getTitleAt(i);
-						if (tabToText.containsKey(title)) {
-							tabToText.remove(title);
+						String title = pnlTabbedSources.getTitleAt(i);
+						if (tabToSource.containsKey(title)) {
+							tabToSource.remove(title);
 						}
-						tabbedClasses.remove(i);
+						pnlTabbedSources.remove(i);
 					}
 				}
 			});
-			spMain.setRightComponent(tabbedClasses);
+			nsplit.addNComponent(1, 600, pnlTabbedSources);
+			// spMain.setRightComponent(tabbedClasses);
 		}
-		// Setting up the menu
+		// Set up the search results panel
+		pnlSearch = new SearchPanel(this, callback);
+		{
+			nsplit.addNComponent(2, 200, pnlSearch);
+		}
+		// Finish split-pane porportions
+		nsplit.setNDivider(0, 150);
+		nsplit.setNDivider(1, 600);
+	}
+
+	private void setupMenu() {
 		JMenuBar menuBar = new JMenuBar();
 		{
 			frame.setJMenuBar(menuBar);
@@ -264,7 +286,7 @@ public class MainWindow {
 	 */
 	public void openTab(String title, String text) {
 		JTextArea textArea = new JTextArea(text);
-		this.tabbedClasses.addTab(title, textArea);
+		this.pnlTabbedSources.addTab(title, textArea);
 	}
 
 	/**
@@ -279,14 +301,14 @@ public class MainWindow {
 		// Try to get existing text area:
 		/// - If it does not exist, create a new tab.
 		/// - If it does exist, update content and set it as the current tab.
-		JavaTextArea javaArea = tabToText.get(title);
+		JavaTextArea javaArea = tabToSource.get(title);
 		if (javaArea == null) {
-			int index = tabbedClasses.getTabCount();
+			int index = pnlTabbedSources.getTabCount();
 			javaArea = new JavaTextArea(callback);
 			javaArea.setText(text);
-			tabbedClasses.addTab(title, javaArea);
-			tabToText.put(title, javaArea);
-			tabbedClasses.setSelectedIndex(index);
+			pnlTabbedSources.addTab(title, javaArea);
+			tabToSource.put(title, javaArea);
+			pnlTabbedSources.setSelectedIndex(index);
 		} else {
 			// Re-decompile if option for refreshing is active
 			if (callback.getOptions().get(Options.REFRESH_ON_SELECT)) {
@@ -309,8 +331,8 @@ public class MainWindow {
 	 */
 	private boolean selectTab(String title) {
 		int index = -1;
-		for (int i = 0; i < tabbedClasses.getTabCount(); i++) {
-			if (tabbedClasses.getTitleAt(i).equals(title)) {
+		for (int i = 0; i < pnlTabbedSources.getTabCount(); i++) {
+			if (pnlTabbedSources.getTitleAt(i).equals(title)) {
 				index = i;
 				break;
 			}
@@ -318,7 +340,7 @@ public class MainWindow {
 		if (index == -1) {
 			return false;
 		}
-		tabbedClasses.setSelectedIndex(index);
+		pnlTabbedSources.setSelectedIndex(index);
 		return true;
 	}
 
@@ -331,8 +353,8 @@ public class MainWindow {
 	 */
 	public boolean closeTab(String title) {
 		int index = -1;
-		for (int i = 0; i < tabbedClasses.getTabCount(); i++) {
-			if (tabbedClasses.getTitleAt(i).equals(title)) {
+		for (int i = 0; i < pnlTabbedSources.getTabCount(); i++) {
+			if (pnlTabbedSources.getTitleAt(i).equals(title)) {
 				index = i;
 				break;
 			}
@@ -340,7 +362,7 @@ public class MainWindow {
 		if (index == -1) {
 			return false;
 		}
-		tabbedClasses.remove(index);
+		pnlTabbedSources.remove(index);
 		return true;
 	}
 
@@ -360,7 +382,7 @@ public class MainWindow {
 	}
 
 	public FileTree getFileTree() {
-		return fileTree;
+		return pnlFileTree;
 	}
 
 	public JavaTextArea getSourceArea() {

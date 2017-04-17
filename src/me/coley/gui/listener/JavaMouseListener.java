@@ -5,7 +5,7 @@ import java.awt.event.MouseListener;
 
 import me.coley.Program;
 import me.coley.gui.component.JavaTextArea;
-import me.coley.gui.component.MyPopupMenu;
+import me.coley.gui.component.MemberSelectionMenu;
 
 public class JavaMouseListener implements MouseListener {
 	private final Program callback;
@@ -20,7 +20,7 @@ public class JavaMouseListener implements MouseListener {
 	public void mouseClicked(MouseEvent e) {
 		text.setCanParse(true);
 		if (e.getButton() == MouseEvent.BUTTON3) {
-			new MyPopupMenu(callback, text).show(e.getComponent(), e.getX(), e.getY());
+			new MemberSelectionMenu(callback, text).show(e.getComponent(), e.getX(), e.getY());
 		}
 	}
 
