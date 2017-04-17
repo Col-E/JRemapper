@@ -27,7 +27,7 @@ public class FileTree extends JPanel {
 		this.callback = program;
 		//
 		try {
-			tree.setCellRenderer(new JavaCellRenderer(callback));
+			tree.setCellRenderer(new FileTreeRenderer(callback));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

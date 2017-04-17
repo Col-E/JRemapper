@@ -38,7 +38,7 @@ public class Program {
 	/**
 	 * Search handler
 	 */
-	private Search searcher = new Search();
+	private Search searcher = new Search(this);
 
 	/**
 	 * Displays the GUI.

@@ -112,7 +112,7 @@ public class MainWindow {
 			// spMain.setRightComponent(tabbedClasses);
 		}
 		// Set up the search results panel
-		pnlSearch = new SearchPanel(this, callback);
+		pnlSearch = new SearchPanel(callback);
 		{
 			nsplit.addNComponent(2, 200, pnlSearch);
 		}
