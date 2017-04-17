@@ -3,7 +3,8 @@ package me.coley.gui.component.tree;
 import java.awt.BorderLayout;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Set;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -12,10 +13,10 @@ import javax.swing.tree.DefaultTreeModel;
 
 import io.github.bmf.JarReader;
 import io.github.bmf.mapping.ClassMapping;
-import me.coley.Options;
 import me.coley.Program;
 import me.coley.gui.listener.FileSelectionListener;
-import me.coley.util.SwingUtil;
+import me.coley.util.JavaNameSorter;
+import me.coley.util.StreamUtil;
 
 @SuppressWarnings("serial")
 public class FileTree extends JPanel {
@@ -43,7 +44,6 @@ public class FileTree extends JPanel {
 	 */
 	public void setup() {
 		JarReader read = callback.getJarReader();
-		boolean ignoreErr = callback.getOptions().get(Options.IGNORE_ERRORS);
 		// Root node
 		String jarName = read.getFile().getName();
 		MappingTreeNode root = new MappingTreeNode(jarName, null);
@@ -52,8 +52,10 @@ public class FileTree extends JPanel {
 		tree.addTreeSelectionListener(sel);
 		tree.addMouseListener(sel);
 		tree.setModel(model);
-		// Iterate classes
-		Set<String> names = ignoreErr ? read.getMapping().getMappings().keySet() : read.getClassEntries().keySet();
+		// Iterate sorted classes
+		// Sorting is done here because sorting the list is way easier than
+		// sorting the tree after.
+		List<String> names = StreamUtil.listOfSortedJavaNames(read.getClassEntries().keySet());
 		for (String className : names) {
 			// Get mapping linked to class name
 			ClassMapping mapping = read.getMapping().getMapping(className);
@@ -63,22 +65,7 @@ public class FileTree extends JPanel {
 			// Create directory of nodes
 			generateTreePath(root, dirPath, mapping, model);
 		}
-		if (ignoreErr) {
-			// Ignore errors should be used ONLY if a heavily obfuscated jar
-			// cannot be loaded otherwise.
-			try {
-				// In most jar files this shouldn't fail.
-				// It may fail in heavily obfuscated jars with odd unicode
-				// names.
-				model.setRoot(SwingUtil.sort(root));
-			} catch (Exception e) {
-				// This is the backup that will work but looks ugly and isn't
-				// sorted.
-				model.setRoot(root);
-			}
-		} else {
-			model.setRoot(SwingUtil.sort(root));
-		}
+		model.setRoot(root);
 	}
 
 	/**
@@ -167,7 +154,8 @@ public class FileTree extends JPanel {
 		// tree.addMouseListener(sel);
 		tree.setModel(model);
 		// Iterate classes
-		for (String className : read.getMapping().getMappings().keySet()) {
+		List<String> names = StreamUtil.listOfSortedJavaNames(read.getClassEntries().keySet());
+		for (String className : names) {
 			if (!read.getClassEntries().containsKey(className)) {
 				continue;
 			}
@@ -179,14 +167,6 @@ public class FileTree extends JPanel {
 			// Create directory of nodes
 			generateTreePath(root, dirPath, mapping, model);
 		}
-		try {
-			// In most jar files this shouldn't fail.
-			model.setRoot(SwingUtil.sort(root));
-		} catch (Exception e) {
-			// Fails in heavily obfuscated jars with odd unicode names.
-			// This is the backup that will work but looks ugly and isn't
-			// sorted.
-			model.setRoot(root);
-		}
+		model.setRoot(root);
 	}
 }

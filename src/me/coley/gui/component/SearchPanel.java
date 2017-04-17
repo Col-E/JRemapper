@@ -141,6 +141,6 @@ public class SearchPanel extends JPanel {
 		DefaultTreeModel model = new DefaultTreeModel(root);
 		tree.setModel(model);
 		// TODO: Check if the extra steps in FileTree's setRoot are needed
-		model.setRoot(SwingUtil.sort(root));
+		//model.setRoot(SwingUtil.sort(root));
 	}
 }
