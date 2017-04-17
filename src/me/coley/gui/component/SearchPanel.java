@@ -83,8 +83,8 @@ public class SearchPanel extends JPanel {
 		searchAll.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				e.consume();
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					e.consume();
 					DefaultMutableTreeNode root = callback.getSearcher().searchUTF8(Search.UTF_ALL, searchAll.getText());
 					setResults(root);
 				}
@@ -93,8 +93,8 @@ public class SearchPanel extends JPanel {
 		searchStrings.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				e.consume();
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					e.consume();
 					DefaultMutableTreeNode root = callback.getSearcher().searchUTF8(Search.UTF_STRINGS, searchAll.getText());
 					setResults(root);
 				}
@@ -103,8 +103,8 @@ public class SearchPanel extends JPanel {
 		searchNonStrings.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				e.consume();
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					e.consume();
 					DefaultMutableTreeNode root = callback.getSearcher().searchUTF8(Search.UTF_NOTSTRINGS, searchAll.getText());
 					setResults(root);
 				}
@@ -141,6 +141,6 @@ public class SearchPanel extends JPanel {
 		DefaultTreeModel model = new DefaultTreeModel(root);
 		tree.setModel(model);
 		// TODO: Check if the extra steps in FileTree's setRoot are needed
-		//model.setRoot(SwingUtil.sort(root));
+		// model.setRoot(SwingUtil.sort(root));
 	}
 }
