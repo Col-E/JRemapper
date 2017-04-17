@@ -2,8 +2,6 @@ package me.coley.search;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -46,7 +44,7 @@ public class Search {
 				strUTF.forEach((c) -> mtn.add(new SearchResultTreeNode(mtn, ((ConstUTF8) c).getValue())));
 			} else {
 				List<Constant> stringConstants = new ArrayList<>();
-				cn.constants.stream().filter((c) -> (c != null && c.type == ConstantType.STRING)).forEach((c) -> stringConstants.add(cn.constants.get(((ConstString) c).getValue())));
+				cn.constants.stream().filter((c) -> (c != null && c.type == ConstantType.STRING)).forEach((c) -> stringConstants.add(cn.getConst(((ConstString) c).getValue())));
 				if (mode == UTF_STRINGS) {
 					strUTF.filter((c) -> stringConstants.contains(c)).forEach((c) -> mtn.add(new SearchResultTreeNode(mtn, ((ConstUTF8) c).getValue())));
 				} else if (mode == UTF_NOTSTRINGS) {

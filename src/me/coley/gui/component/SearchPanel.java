@@ -21,8 +21,8 @@ import javax.swing.tree.DefaultTreeModel;
 
 import me.coley.Program;
 import me.coley.gui.component.tree.SearchRenderer;
+import me.coley.gui.listener.SearchResultTreeListener;
 import me.coley.search.Search;
-import me.coley.util.SwingUtil;
 
 @SuppressWarnings("serial")
 public class SearchPanel extends JPanel {
@@ -95,7 +95,7 @@ public class SearchPanel extends JPanel {
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
 					e.consume();
-					DefaultMutableTreeNode root = callback.getSearcher().searchUTF8(Search.UTF_STRINGS, searchAll.getText());
+					DefaultMutableTreeNode root = callback.getSearcher().searchUTF8(Search.UTF_STRINGS, searchStrings.getText());
 					setResults(root);
 				}
 			}
@@ -105,7 +105,7 @@ public class SearchPanel extends JPanel {
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
 					e.consume();
-					DefaultMutableTreeNode root = callback.getSearcher().searchUTF8(Search.UTF_NOTSTRINGS, searchAll.getText());
+					DefaultMutableTreeNode root = callback.getSearcher().searchUTF8(Search.UTF_NOTSTRINGS, searchNonStrings.getText());
 					setResults(root);
 				}
 			}
@@ -134,13 +134,14 @@ public class SearchPanel extends JPanel {
 		JScrollPane scrollTree = new JScrollPane(tree);
 		wrapper.add(scrollTree, BorderLayout.CENTER);
 		tree.setCellRenderer(new SearchRenderer(callback));
+		SearchResultTreeListener sel = new SearchResultTreeListener(callback);
+		tree.addTreeSelectionListener(sel);
+		tree.addMouseListener(sel);
 		add(wrapper, BorderLayout.CENTER);
 	}
 
 	public void setResults(DefaultMutableTreeNode root) {
 		DefaultTreeModel model = new DefaultTreeModel(root);
 		tree.setModel(model);
-		// TODO: Check if the extra steps in FileTree's setRoot are needed
-		// model.setRoot(SwingUtil.sort(root));
 	}
 }

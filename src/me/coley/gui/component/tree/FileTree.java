@@ -4,8 +4,6 @@ import java.awt.BorderLayout;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
@@ -15,7 +13,6 @@ import io.github.bmf.JarReader;
 import io.github.bmf.mapping.ClassMapping;
 import me.coley.Program;
 import me.coley.gui.listener.FileSelectionListener;
-import me.coley.util.JavaNameSorter;
 import me.coley.util.StreamUtil;
 
 @SuppressWarnings("serial")
