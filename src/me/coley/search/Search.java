@@ -38,7 +38,7 @@ public class Search {
 		for (String name : StreamUtil.listOfSortedJavaNames(jar.getClassEntries().keySet())) {
 			ClassNode cn = jar.getClassEntries().get(name);
 			ClassMapping cm = jar.getMapping().getMapping(name);
-			MappingTreeNode mtn = new MappingTreeNode(name, cm);
+			MappingTreeNode mtn = new MappingTreeNode(cm.name.getValue(), cm);
 			Stream<Constant> strUTF = cn.constants.stream().filter((c) -> (c != null && c.type == ConstantType.UTF8)).filter((c) -> ((ConstUTF8) c).getValue().contains(text));
 			if (mode == UTF_ALL) {
 				strUTF.forEach((c) -> mtn.add(new SearchResultTreeNode(mtn, ((ConstUTF8) c).getValue())));
