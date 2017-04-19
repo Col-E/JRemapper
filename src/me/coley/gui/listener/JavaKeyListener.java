@@ -3,11 +3,11 @@ package me.coley.gui.listener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
-import io.github.bmf.mapping.AbstractMapping;
-import io.github.bmf.mapping.ClassMapping;
-import io.github.bmf.mapping.MemberMapping;
 import me.coley.Options;
 import me.coley.Program;
+import me.coley.bmf.mapping.AbstractMapping;
+import me.coley.bmf.mapping.ClassMapping;
+import me.coley.bmf.mapping.MemberMapping;
 import me.coley.gui.component.JavaTextArea;
 import me.coley.util.StringUtil;
 

@@ -9,11 +9,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeModel;
 
-import io.github.bmf.JarReader;
-import io.github.bmf.mapping.ClassMapping;
 import me.coley.Program;
+import me.coley.bmf.JarReader;
+import me.coley.bmf.mapping.ClassMapping;
+import me.coley.bmf.util.StreamUtil;
 import me.coley.gui.listener.FileSelectionListener;
-import me.coley.util.StreamUtil;
 
 @SuppressWarnings("serial")
 public class FileTree extends JPanel {

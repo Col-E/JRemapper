@@ -3,9 +3,9 @@ package me.coley.gui.listener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import io.github.bmf.mapping.ClassMapping;
-import io.github.bmf.mapping.MemberMapping;
 import me.coley.Program;
+import me.coley.bmf.mapping.ClassMapping;
+import me.coley.bmf.mapping.MemberMapping;
 
 public class ActionRenameReset implements ActionListener {
 

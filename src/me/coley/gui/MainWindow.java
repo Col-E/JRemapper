@@ -7,8 +7,6 @@ import javax.swing.JTextArea;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import io.github.bmf.mapping.ClassMapping;
-
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -19,6 +17,7 @@ import java.util.Map;
 
 import me.coley.CFRSetting;
 import me.coley.History.RenameAction;
+import me.coley.bmf.mapping.ClassMapping;
 import me.coley.Options;
 import me.coley.Program;
 import me.coley.gui.component.JavaTextArea;

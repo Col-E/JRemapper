@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.github.bmf.mapping.AbstractMapping;
+import me.coley.bmf.mapping.AbstractMapping;
 
 public class History {
 	private final RollingList<String> selectedClasses = new RollingList<>(10);

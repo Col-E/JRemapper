@@ -5,10 +5,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import io.github.bmf.mapping.AbstractMapping;
-import io.github.bmf.mapping.ClassMapping;
-import io.github.bmf.mapping.MemberMapping;
+
 import me.coley.Program;
+import me.coley.bmf.mapping.AbstractMapping;
+import me.coley.bmf.mapping.ClassMapping;
+import me.coley.bmf.mapping.MemberMapping;
 
 public class Context {
 	private final static List<String> ID_FLOW = Arrays.asList("if ", "else", "do", "while", "for", "continue", "break");

@@ -6,17 +6,17 @@ import java.util.stream.Stream;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
-import io.github.bmf.ClassNode;
-import io.github.bmf.JarReader;
-import io.github.bmf.consts.ConstString;
-import io.github.bmf.consts.ConstUTF8;
-import io.github.bmf.consts.Constant;
-import io.github.bmf.consts.ConstantType;
-import io.github.bmf.mapping.ClassMapping;
 import me.coley.Program;
+import me.coley.bmf.ClassNode;
+import me.coley.bmf.JarReader;
+import me.coley.bmf.consts.ConstString;
+import me.coley.bmf.consts.ConstUTF8;
+import me.coley.bmf.consts.Constant;
+import me.coley.bmf.consts.ConstantType;
+import me.coley.bmf.mapping.ClassMapping;
+import me.coley.bmf.util.StreamUtil;
 import me.coley.gui.component.tree.MappingTreeNode;
 import me.coley.gui.component.tree.SearchResultTreeNode;
-import me.coley.util.StreamUtil;
 
 public class Search {
 	public static final int UTF_ALL = 100;

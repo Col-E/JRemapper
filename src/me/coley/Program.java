@@ -7,9 +7,10 @@ import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.benf.cfr.reader.PluginRunner;
-import io.github.bmf.ClassWriter;
-import io.github.bmf.JarReader;
-import io.github.bmf.mapping.ClassMapping;
+
+import me.coley.bmf.ClassWriter;
+import me.coley.bmf.JarReader;
+import me.coley.bmf.mapping.ClassMapping;
 import me.coley.gui.MainWindow;
 import me.coley.search.Search;
 

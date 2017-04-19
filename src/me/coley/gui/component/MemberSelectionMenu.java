@@ -6,9 +6,9 @@ import java.awt.event.ActionListener;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
-import io.github.bmf.mapping.AbstractMapping;
-import io.github.bmf.mapping.ClassMapping;
 import me.coley.Program;
+import me.coley.bmf.mapping.AbstractMapping;
+import me.coley.bmf.mapping.ClassMapping;
 
 @SuppressWarnings("serial")
 public class MemberSelectionMenu extends JPopupMenu {

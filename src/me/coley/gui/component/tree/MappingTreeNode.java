@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.swing.tree.DefaultMutableTreeNode;
 
-import io.github.bmf.mapping.ClassMapping;
+import me.coley.bmf.mapping.ClassMapping;
 
 @SuppressWarnings("serial")
 public class MappingTreeNode extends DefaultMutableTreeNode {

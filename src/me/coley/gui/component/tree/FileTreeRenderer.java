@@ -9,9 +9,9 @@ import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
-import io.github.bmf.ClassNode;
-import io.github.bmf.util.Access;
 import me.coley.Program;
+import me.coley.bmf.ClassNode;
+import me.coley.bmf.util.Access;
 
 /**
  * Slightly modified from Luyten's.

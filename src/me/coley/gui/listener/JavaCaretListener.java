@@ -3,10 +3,10 @@ package me.coley.gui.listener;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 
-import io.github.bmf.mapping.AbstractMapping;
-import io.github.bmf.mapping.ClassMapping;
-import io.github.bmf.mapping.MemberMapping;
 import me.coley.Program;
+import me.coley.bmf.mapping.AbstractMapping;
+import me.coley.bmf.mapping.ClassMapping;
+import me.coley.bmf.mapping.MemberMapping;
 import me.coley.gui.component.JavaTextArea;
 
 public class JavaCaretListener implements CaretListener {

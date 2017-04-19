@@ -5,13 +5,13 @@ import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.github.bmf.mapping.ClassMapping;
-import io.github.bmf.mapping.MemberMapping;
-import io.github.bmf.type.PrimitiveType;
-import io.github.bmf.type.Type;
-import io.github.bmf.type.descriptors.MethodDescriptor;
-import io.github.bmf.type.descriptors.VariableDescriptor;
 import me.coley.Program;
+import me.coley.bmf.mapping.ClassMapping;
+import me.coley.bmf.mapping.MemberMapping;
+import me.coley.bmf.type.PrimitiveType;
+import me.coley.bmf.type.Type;
+import me.coley.bmf.type.descriptors.MethodDescriptor;
+import me.coley.bmf.type.descriptors.VariableDescriptor;
 import me.coley.util.StringUtil;
 
 public class ActionRenameClasses implements ActionListener {

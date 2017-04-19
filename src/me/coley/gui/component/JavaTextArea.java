@@ -7,8 +7,8 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
 
-import io.github.bmf.mapping.AbstractMapping;
 import me.coley.Program;
+import me.coley.bmf.mapping.AbstractMapping;
 import me.coley.gui.listener.JavaCaretListener;
 import me.coley.gui.listener.JavaKeyListener;
 import me.coley.gui.listener.JavaMouseListener;
