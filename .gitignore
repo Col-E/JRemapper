@@ -7,6 +7,7 @@ bin/**
 *.sh
 *.bat
 *.jar
+*.zip
 .classpath
 .project
 **/meme/**
