@@ -74,11 +74,11 @@ public class SearchPanel extends JPanel {
 		JTextField searchAll = new JTextField();
 		JTextField searchStrings = new JTextField();
 		JTextField searchNonStrings = new JTextField();
-		p.add(new JLabel("Search All"));
+		p.add(new JLabel("All:"));
 		p.add(searchAll);
-		p.add(new JLabel("Search Strings"));
+		p.add(new JLabel("Strings:"));
 		p.add(searchStrings);
-		p.add(new JLabel("Search Non-Strings"));
+		p.add(new JLabel("Non-Strings:"));
 		p.add(searchNonStrings);
 		searchAll.addKeyListener(new KeyAdapter() {
 			@Override
@@ -117,7 +117,45 @@ public class SearchPanel extends JPanel {
 		JPanel p = new JPanel();
 		p.setBorder(BorderFactory.createEmptyBorder(2, 5, 0, 5));
 		p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-		p.add(new JLabel("TODO"));
+		JTextField searchContains = new JTextField();
+		JTextField searchReferencesMethods = new JTextField();
+		JTextField searchReferencesFields = new JTextField();
+		p.add(new JLabel("Name Contains:"));
+		p.add(searchContains);
+		p.add(new JLabel("References (Methods) to:"));
+		p.add(searchReferencesMethods);
+		p.add(new JLabel("References (Fields) to:"));
+		p.add(searchReferencesFields);
+		searchContains.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					e.consume();
+					DefaultMutableTreeNode root = callback.getSearcher().searchClass(Search.CLASS_NAME_CONTAINS, searchContains.getText());
+					setResults(root);
+				}
+			}
+		});
+		searchReferencesMethods.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					e.consume();
+					DefaultMutableTreeNode root = callback.getSearcher().searchClass(Search.CLASS_REF_METHODS, searchReferencesMethods.getText());
+					setResults(root);
+				}
+			}
+		});
+		searchReferencesFields.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					e.consume();
+					DefaultMutableTreeNode root = callback.getSearcher().searchClass(Search.CLASS_REF_FIELDS, searchReferencesFields.getText());
+					setResults(root);
+				}
+			}
+		});
 		return p;
 	}
 
