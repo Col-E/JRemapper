@@ -31,9 +31,12 @@ public class SearchPanel extends JPanel {
 	private static final String SearchUTF8 = "UTF8";
 	private static final String SearchClasses = "Classes";
 	private static final String SearchMembers = "Members";
+	private static final String SearchMemberMethod = "Methods";
+	private static final String SearchMemberField = "Fields";
 	private final Program callback;
 	private final JTree tree = new JTree(new String[] {});
 	private CardLayout layout;
+	private boolean searchMethodMembers;
 
 	public SearchPanel(Program callback) {
 		this.callback = callback;
@@ -123,21 +126,50 @@ public class SearchPanel extends JPanel {
 		searchContains.addKeyListener(new SearchAdapter(searchContains, funcSNameContains));
 		//
 		Function<String, DefaultMutableTreeNode> funcSMethodRefs = s -> callback.getSearcher()
-				.searchClass(Search.CLASS_REF_METHODS, s);
+				.searchClass(Search.CLASS_REFERENCE_METHODS, s);
 		searchReferencesMethods.addKeyListener(new SearchAdapter(searchReferencesMethods, funcSMethodRefs));
 		//
 		Function<String, DefaultMutableTreeNode> funcSFieldRefs = s -> callback.getSearcher()
-				.searchClass(Search.CLASS_REF_FIELDS, s);
+				.searchClass(Search.CLASS_REFERENCE_FIELDS, s);
 		searchReferencesFields.addKeyListener(new SearchAdapter(searchReferencesFields, funcSFieldRefs));
 		//
 		return p;
 	}
 
 	private JPanel createMemberSearchPanel() {
+		// TODO: figure out why labels aren't left-aligned like the other
+		// panels.
 		JPanel p = new JPanel();
 		p.setBorder(BorderFactory.createEmptyBorder(2, 5, 0, 5));
 		p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-		p.add(new JLabel("TODO"));
+		JComboBox<String> combo = new JComboBox<>();
+		JTextField searchNameContains = new JTextField();
+		JTextField searchDescContains = new JTextField();
+		p.add(combo);
+		p.add(new JLabel("Name contains:"));
+		p.add(searchNameContains);
+		p.add(new JLabel("Descriptor contains:"));
+		p.add(searchDescContains);
+		DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
+		model.addElement(SearchMemberMethod);
+		model.addElement(SearchMemberField);
+		combo.setModel(model);
+		combo.setEditable(false);
+		combo.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent evt) {
+				searchMethodMembers = combo.getSelectedItem().toString().endsWith(SearchMemberMethod);
+			}
+		});
+		searchMethodMembers = combo.getSelectedItem().toString().endsWith(SearchMemberMethod);
+		//
+		Function<String, DefaultMutableTreeNode> funcSMemberName = s -> callback.getSearcher()
+				.searchMember(Search.MEMBER_DEFINITION_NAME, this.searchMethodMembers, s);
+		searchNameContains.addKeyListener(new SearchAdapter(searchNameContains, funcSMemberName));
+		//
+		Function<String, DefaultMutableTreeNode> funcSMemberDesc = s -> callback.getSearcher()
+				.searchMember(Search.MEMBER_DEFINITION_DESC, this.searchMethodMembers, s);
+		searchDescContains.addKeyListener(new SearchAdapter(searchDescContains, funcSMemberDesc));
 		return p;
 	}
 
