@@ -6,6 +6,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.function.Function;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -80,36 +81,15 @@ public class SearchPanel extends JPanel {
 		p.add(searchStrings);
 		p.add(new JLabel("Non-Strings:"));
 		p.add(searchNonStrings);
-		searchAll.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					e.consume();
-					DefaultMutableTreeNode root = callback.getSearcher().searchUTF8(Search.UTF_ALL, searchAll.getText());
-					setResults(root);
-				}
-			}
-		});
-		searchStrings.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					e.consume();
-					DefaultMutableTreeNode root = callback.getSearcher().searchUTF8(Search.UTF_STRINGS, searchStrings.getText());
-					setResults(root);
-				}
-			}
-		});
-		searchNonStrings.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					e.consume();
-					DefaultMutableTreeNode root = callback.getSearcher().searchUTF8(Search.UTF_NOTSTRINGS, searchNonStrings.getText());
-					setResults(root);
-				}
-			}
-		});
+		//
+		Function<String, DefaultMutableTreeNode> funcSAll= s -> callback.getSearcher().searchUTF8(Search.UTF_ALL, s);
+		searchAll.addKeyListener(new SearchAdapter(searchAll, funcSAll));
+		//
+		Function<String, DefaultMutableTreeNode> funcSStrings = s -> callback.getSearcher().searchUTF8(Search.UTF_STRINGS, s);
+		searchStrings.addKeyListener(new SearchAdapter(searchStrings, funcSStrings));
+		//
+		Function<String, DefaultMutableTreeNode> funcSNonStrings = s -> callback.getSearcher().searchUTF8(Search.UTF_NOTSTRINGS, s);
+		searchNonStrings.addKeyListener(new SearchAdapter(searchNonStrings, funcSNonStrings));
 		return p;
 	}
 
@@ -126,36 +106,16 @@ public class SearchPanel extends JPanel {
 		p.add(searchReferencesMethods);
 		p.add(new JLabel("References (Fields) to:"));
 		p.add(searchReferencesFields);
-		searchContains.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					e.consume();
-					DefaultMutableTreeNode root = callback.getSearcher().searchClass(Search.CLASS_NAME_CONTAINS, searchContains.getText());
-					setResults(root);
-				}
-			}
-		});
-		searchReferencesMethods.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					e.consume();
-					DefaultMutableTreeNode root = callback.getSearcher().searchClass(Search.CLASS_REF_METHODS, searchReferencesMethods.getText());
-					setResults(root);
-				}
-			}
-		});
-		searchReferencesFields.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					e.consume();
-					DefaultMutableTreeNode root = callback.getSearcher().searchClass(Search.CLASS_REF_FIELDS, searchReferencesFields.getText());
-					setResults(root);
-				}
-			}
-		});
+		//
+		Function<String, DefaultMutableTreeNode> funcSNameContains = s -> callback.getSearcher().searchClass(Search.CLASS_NAME_CONTAINS, s);
+		searchContains.addKeyListener(new SearchAdapter(searchContains, funcSNameContains));
+		//
+		Function<String, DefaultMutableTreeNode> funcSMethodRefs = s -> callback.getSearcher().searchClass(Search.CLASS_REF_METHODS, s);
+		searchReferencesMethods.addKeyListener(new SearchAdapter(searchReferencesMethods, funcSMethodRefs));
+		//
+		Function<String, DefaultMutableTreeNode> funcSFieldRefs = s -> callback.getSearcher().searchClass(Search.CLASS_REF_FIELDS, s);
+		searchReferencesFields.addKeyListener(new SearchAdapter(searchReferencesFields, funcSFieldRefs));
+		//
 		return p;
 	}
 
@@ -181,5 +141,24 @@ public class SearchPanel extends JPanel {
 	public void setResults(DefaultMutableTreeNode root) {
 		DefaultTreeModel model = new DefaultTreeModel(root);
 		tree.setModel(model);
+	}
+
+	class SearchAdapter extends KeyAdapter {
+		private final JTextField txt;
+		private final Function<String, DefaultMutableTreeNode> dest;
+
+		public SearchAdapter(JTextField txt, Function<String, DefaultMutableTreeNode> dest) {
+			this.txt = txt;
+			this.dest = dest;
+		}
+
+		@Override
+		public void keyPressed(KeyEvent e) {
+			if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+				e.consume();
+				DefaultMutableTreeNode root = dest.apply(txt.getText());
+				setResults(root);
+			}
+		}
 	}
 }

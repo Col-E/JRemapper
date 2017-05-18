@@ -74,8 +74,6 @@ public class Search {
 					mtn.add(new SearchResultTreeNode(mtn, name));
 				}
 			} else {
-				// TODO: Move to member search?
-				// Doesn't seem super relevant to class search as-is.
 				boolean meth = mode == CLASS_REF_METHODS;
 				for (int i = 0; i < cn.constants.size(); i++) {
 					Constant c = cn.constants.get(i);
@@ -83,13 +81,20 @@ public class Search {
 						continue;
 					if (c instanceof AbstractMemberConstant) {
 						AbstractMemberConstant amc = (AbstractMemberConstant) c;
+						String memberOwner = ConstUtil.getClassName(cn, amc.getClassIndex());
 						ConstNameType cnt = (ConstNameType) cn.getConst(amc.getNameTypeIndex());
 						String memberName = ConstUtil.getUTF8(cn, cnt.getNameIndex());
 						String memberDesc = ConstUtil.getUTF8(cn, cnt.getDescIndex());
-						if (memberDesc.contains(text)) {
-							String combined = memberName + (meth ? "" : " ") + memberDesc;
+
+						if (memberOwner.contains(text)) {
+							System.err.println("class: " + memberOwner + " " + text);
+
+							String combined = memberOwner + " " + memberName + (meth ? "" : " ") + memberDesc;
 							mtn.add(new SearchResultTreeNode(mtn, combined));
 						}
+					}else {
+						System.err.println("The hell?");
+
 					}
 				}
 			}
