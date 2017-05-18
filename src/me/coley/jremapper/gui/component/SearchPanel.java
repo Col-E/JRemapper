@@ -17,6 +17,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTree;
+import javax.swing.border.EmptyBorder;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
@@ -42,7 +43,13 @@ public class SearchPanel extends JPanel {
 	}
 
 	private void setupSearchOptions() {
-		JPanel wrapper = new JPanel(new BorderLayout());
+		JPanel pnlTitleAndContentWrapper = new JPanel(new BorderLayout());
+		JPanel pnlSearchOptionWrapper = new JPanel(new BorderLayout());
+		JLabel title = new JLabel("Search ConstPools:");
+		title.setToolTipText("Search works by checking the constant pool of all loaded classes.<br>"
+				+ "In order to better understand the results, read up on the class file specs.");
+		title.setBorder(new EmptyBorder(5, 5, 5, 0));
+
 		final JPanel cardController = new JPanel(layout = new CardLayout());
 		JComboBox<String> combo = new JComboBox<>();
 		DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
@@ -63,9 +70,11 @@ public class SearchPanel extends JPanel {
 		cardController.add(cardStrings, SearchUTF8);
 		cardController.add(cardClasses, SearchClasses);
 		cardController.add(cardMember, SearchMembers);
-		wrapper.add(combo, BorderLayout.NORTH);
-		wrapper.add(cardController, BorderLayout.CENTER);
-		add(wrapper, BorderLayout.NORTH);
+		pnlSearchOptionWrapper.add(combo, BorderLayout.NORTH);
+		pnlSearchOptionWrapper.add(cardController, BorderLayout.CENTER);
+		pnlTitleAndContentWrapper.add(pnlSearchOptionWrapper, BorderLayout.CENTER);
+		pnlTitleAndContentWrapper.add(title, BorderLayout.NORTH);
+		add(pnlTitleAndContentWrapper, BorderLayout.NORTH);
 	}
 
 	private JPanel createUTFSearchPanel() {
@@ -79,16 +88,18 @@ public class SearchPanel extends JPanel {
 		p.add(searchAll);
 		p.add(new JLabel("Strings:"));
 		p.add(searchStrings);
-		p.add(new JLabel("Non-Strings:"));
+		p.add(new JLabel("Non-strings:"));
 		p.add(searchNonStrings);
 		//
-		Function<String, DefaultMutableTreeNode> funcSAll= s -> callback.getSearcher().searchUTF8(Search.UTF_ALL, s);
+		Function<String, DefaultMutableTreeNode> funcSAll = s -> callback.getSearcher().searchUTF8(Search.UTF_ALL, s);
 		searchAll.addKeyListener(new SearchAdapter(searchAll, funcSAll));
 		//
-		Function<String, DefaultMutableTreeNode> funcSStrings = s -> callback.getSearcher().searchUTF8(Search.UTF_STRINGS, s);
+		Function<String, DefaultMutableTreeNode> funcSStrings = s -> callback.getSearcher()
+				.searchUTF8(Search.UTF_STRINGS, s);
 		searchStrings.addKeyListener(new SearchAdapter(searchStrings, funcSStrings));
 		//
-		Function<String, DefaultMutableTreeNode> funcSNonStrings = s -> callback.getSearcher().searchUTF8(Search.UTF_NOTSTRINGS, s);
+		Function<String, DefaultMutableTreeNode> funcSNonStrings = s -> callback.getSearcher()
+				.searchUTF8(Search.UTF_NOTSTRINGS, s);
 		searchNonStrings.addKeyListener(new SearchAdapter(searchNonStrings, funcSNonStrings));
 		return p;
 	}
@@ -100,20 +111,23 @@ public class SearchPanel extends JPanel {
 		JTextField searchContains = new JTextField();
 		JTextField searchReferencesMethods = new JTextField();
 		JTextField searchReferencesFields = new JTextField();
-		p.add(new JLabel("Name Contains:"));
+		p.add(new JLabel("Name contains:"));
 		p.add(searchContains);
-		p.add(new JLabel("References (Methods) to:"));
+		p.add(new JLabel("Method references to:"));
 		p.add(searchReferencesMethods);
-		p.add(new JLabel("References (Fields) to:"));
+		p.add(new JLabel("Field references to:"));
 		p.add(searchReferencesFields);
 		//
-		Function<String, DefaultMutableTreeNode> funcSNameContains = s -> callback.getSearcher().searchClass(Search.CLASS_NAME_CONTAINS, s);
+		Function<String, DefaultMutableTreeNode> funcSNameContains = s -> callback.getSearcher()
+				.searchClass(Search.CLASS_NAME_CONTAINS, s);
 		searchContains.addKeyListener(new SearchAdapter(searchContains, funcSNameContains));
 		//
-		Function<String, DefaultMutableTreeNode> funcSMethodRefs = s -> callback.getSearcher().searchClass(Search.CLASS_REF_METHODS, s);
+		Function<String, DefaultMutableTreeNode> funcSMethodRefs = s -> callback.getSearcher()
+				.searchClass(Search.CLASS_REF_METHODS, s);
 		searchReferencesMethods.addKeyListener(new SearchAdapter(searchReferencesMethods, funcSMethodRefs));
 		//
-		Function<String, DefaultMutableTreeNode> funcSFieldRefs = s -> callback.getSearcher().searchClass(Search.CLASS_REF_FIELDS, s);
+		Function<String, DefaultMutableTreeNode> funcSFieldRefs = s -> callback.getSearcher()
+				.searchClass(Search.CLASS_REF_FIELDS, s);
 		searchReferencesFields.addKeyListener(new SearchAdapter(searchReferencesFields, funcSFieldRefs));
 		//
 		return p;
