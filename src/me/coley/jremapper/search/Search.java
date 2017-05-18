@@ -42,8 +42,11 @@ public class Search {
 			// Create stream of UTF8's containing the search text
 			Stream<Constant> strUTF = cn.constants.stream().filter((c) -> (c != null && c.type == ConstantType.UTF8)).filter((c) -> ((ConstUTF8) c).getValue().contains(text));
 			if (mode == UTF_ALL) {
+				// If the UTF contains the text, regardless of how it's uses add it to the node.
 				strUTF.forEach((c) -> mtn.add(new SearchResultTreeNode(mtn, ((ConstUTF8) c).getValue())));
 			} else {
+				// Before adding a UTF containing the text to the node, first it's usage must be considered.
+				// To access the correct UTF's first we create a list of UTF's used in strings.
 				List<Constant> stringConstants = new ArrayList<>();
 				cn.constants.stream().filter((c) -> (c != null && c.type == ConstantType.STRING)).forEach((c) -> stringConstants.add(cn.getConst(((ConstString) c).getValue())));
 				if (mode == UTF_STRINGS) {
@@ -86,9 +89,7 @@ public class Search {
 						String memberName = ConstUtil.getUTF8(cn, cnt.getNameIndex());
 						String memberDesc = ConstUtil.getUTF8(cn, cnt.getDescIndex());
 
-						if (memberOwner.contains(text)) {
-							System.err.println("class: " + memberOwner + " " + text);
-
+						if (memberOwner.equals(text)) {
 							String combined = memberOwner + " " + memberName + (meth ? "" : " ") + memberDesc;
 							mtn.add(new SearchResultTreeNode(mtn, combined));
 						}
