@@ -1,4 +1,4 @@
-package me.coley.jremapper.gui.listener;
+package me.coley.jremapper.gui.action;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

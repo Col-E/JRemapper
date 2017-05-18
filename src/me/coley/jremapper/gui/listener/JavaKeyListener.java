@@ -51,7 +51,7 @@ public class JavaKeyListener implements KeyListener {
 				cm.name.setValue(value);
 				if (cm.equals(callback.getCurrentClass())) {
 					// Close tab with now outdated name
-					callback.getWindow().closeTab(current);
+					callback.getWindow().removeTab(current);
 				}
 				// Update text area.
 				if (reg) {
