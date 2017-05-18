@@ -183,6 +183,10 @@ public class Context {
 	}
 
 	private void readMember(IndexableStringReader read, String currentSimple, String elem) throws IOException {
+		if (elem.contains("<")){
+			// Cut off generics
+			elem = elem.substring(0, elem.indexOf("<"));
+		}
 		String name = null;
 		String retType = "";
 		String retTypeSuffic = null;

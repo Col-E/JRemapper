@@ -36,7 +36,7 @@ public class IndexableStringReader extends StringReader {
 		while (true) {
 			char c = (char) this.read();
 			// TODO:
-			// if enclosed in " or ' read spaces and delims.
+			// if enclosed in " or ' read spaces and delims. Count the entire string as a word.
 			if (isDelimiter(c)) {
 				break;
 			} else {
