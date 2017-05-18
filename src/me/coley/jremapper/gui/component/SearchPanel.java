@@ -146,9 +146,13 @@ public class SearchPanel extends JPanel {
 		JTextField searchNameContains = new JTextField();
 		JTextField searchDescContains = new JTextField();
 		p.add(combo);
-		p.add(new JLabel("Name contains:"));
+		p.add(new JLabel("Name:"));
 		p.add(searchNameContains);
-		p.add(new JLabel("Descriptor contains:"));
+		JLabel lblDesc = new HTMLLabel("Descriptor:");
+		lblDesc.setToolTipText(
+				"If the entered text is that of a primitive, only primitive descriptors will be searched.<br>"
+						+ "If you search for fields with the descriptor of <i>'I'</i> a class with <i>'I'</i> will not appear. Only primitives will show in the results.");
+		p.add(lblDesc);
 		p.add(searchDescContains);
 		DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
 		model.addElement(SearchMemberMethod);
