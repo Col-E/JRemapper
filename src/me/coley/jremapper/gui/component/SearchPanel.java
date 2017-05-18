@@ -45,7 +45,7 @@ public class SearchPanel extends JPanel {
 	private void setupSearchOptions() {
 		JPanel pnlTitleAndContentWrapper = new JPanel(new BorderLayout());
 		JPanel pnlSearchOptionWrapper = new JPanel(new BorderLayout());
-		JLabel title = new JLabel("Search ConstPools:");
+		JLabel title = new HTMLLabel("Search ConstPools:");
 		title.setToolTipText("Search works by checking the constant pool of all loaded classes.<br>"
 				+ "In order to better understand the results, read up on the class file specs.");
 		title.setBorder(new EmptyBorder(5, 5, 5, 0));
