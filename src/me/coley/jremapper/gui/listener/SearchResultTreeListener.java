@@ -22,7 +22,6 @@ public class SearchResultTreeListener implements TreeSelectionListener, MouseLis
 	public void valueChanged(TreeSelectionEvent e) {
 		TreeNode node = (TreeNode) e.getPath().getLastPathComponent();
 		this.lastNode = node;
-		System.out.println(node.getClass().getName() + "  -  " + node.toString());
 	}
 
 	@Override
