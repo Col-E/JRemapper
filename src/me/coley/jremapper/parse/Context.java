@@ -1,4 +1,4 @@
-package me.coley.jremapper.gui.parse;
+package me.coley.jremapper.parse;
 
 import java.io.IOException;
 import java.util.Arrays;

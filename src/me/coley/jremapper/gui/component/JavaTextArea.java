@@ -12,7 +12,7 @@ import me.coley.jremapper.Program;
 import me.coley.jremapper.gui.listener.JavaCaretListener;
 import me.coley.jremapper.gui.listener.JavaKeyListener;
 import me.coley.jremapper.gui.listener.JavaMouseListener;
-import me.coley.jremapper.gui.parse.Context;
+import me.coley.jremapper.parse.Context;
 
 @SuppressWarnings("serial")
 public class JavaTextArea extends JPanel {
