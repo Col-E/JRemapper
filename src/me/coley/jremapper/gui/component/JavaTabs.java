@@ -1,12 +1,10 @@
-package me.coley.jremapper.gui;
+package me.coley.jremapper.gui.component;
 
 import java.awt.Component;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.JTabbedPane;
-
-import me.coley.jremapper.gui.component.JavaTextArea;
 
 @SuppressWarnings("serial")
 public class JavaTabs extends JTabbedPane {

@@ -138,24 +138,26 @@ public class Program {
 		byte[] bytes = null;
 		try {
 			bytes = ClassWriter.write(jar.getClassEntries().get(originalName));
-			if (bytes == null) {
-				// Failed to decompile
-				window.openTab("Error", "Error: Failed to sending bytes to CFR (BMF output was null)");
-			} else {
-				// Update
-				this.currentClass = clazz;
-				// window.getHistory().addHistory(clazz);
-				// Decompile using CFR, send text to the text-area.
-				try {
-					PluginRunner pluginRunner = new PluginRunner(CFRSetting.toStringMap(), new CFRSourceImpl(bytes));
-					String decomp = pluginRunner.getDecompilationFor(originalName);
-					window.openSourceTab(clazz.name.getValue(), decomp);
-				} catch (Exception e) {
-					window.openTab("Error", "Error: CFR failed to decompile this class:\n" + e.getMessage());
-				}
-			}
 		} catch (IOException e) {
-			window.openTab("Error", "Error: Failed to sending bytes to CFR (Could not recompile via BMF)\n\n" + e.getMessage());
+			window.openTab("Error",
+					"Error: Failed to sending bytes to CFR (Could not recompile via BMF)\n\n" + e.getMessage());
+			return;
+		}
+		if (bytes == null) {
+			// Failed to decompile
+			window.openTab("Error", "Error: Failed to sending bytes to CFR (BMF output was null)");
+		} else {
+			// Update
+			this.currentClass = clazz;
+			// window.getHistory().addHistory(clazz);
+			// Decompile using CFR, send text to the text-area.
+			try {
+				PluginRunner pluginRunner = new PluginRunner(CFRSetting.toStringMap(), new CFRSourceImpl(bytes));
+				String decomp = pluginRunner.getDecompilationFor(originalName);
+				window.openSourceTab(clazz.name.getValue(), decomp);
+			} catch (Exception e) {
+				window.openTab("Error", "Error: CFR failed to decompile this class:\n" + e.getMessage());
+			}
 		}
 	}
 
@@ -183,7 +185,6 @@ public class Program {
 	public JFileChooser getFileChooser(String fileType, String extension) {
 		if (fileChooser == null) {
 			fileChooser = new JFileChooser();
-
 			String dir = System.getProperty("user.dir");
 			File fileDir = new File(dir);
 			fileChooser.setDialogTitle("Open File");

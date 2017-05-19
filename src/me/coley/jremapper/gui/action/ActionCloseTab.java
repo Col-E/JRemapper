@@ -3,7 +3,7 @@ package me.coley.jremapper.gui.action;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import me.coley.jremapper.gui.JavaTabs;
+import me.coley.jremapper.gui.component.JavaTabs;
 
 public class ActionCloseTab extends MouseAdapter {
 	private JavaTabs tabs;

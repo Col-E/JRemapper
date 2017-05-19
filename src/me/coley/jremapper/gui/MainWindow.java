@@ -15,6 +15,7 @@ import me.coley.jremapper.Options;
 import me.coley.jremapper.Program;
 import me.coley.jremapper.History.RenameAction;
 import me.coley.jremapper.gui.action.*;
+import me.coley.jremapper.gui.component.JavaTabs;
 import me.coley.jremapper.gui.component.JavaTextArea;
 import me.coley.jremapper.gui.component.NSplitPane;
 import me.coley.jremapper.gui.component.SearchPanel;
