@@ -359,6 +359,15 @@ public class MainWindow {
 	}
 
 	/**
+	 * Return the search panel.
+	 * 
+	 * @return
+	 */
+	public SearchPanel getSearchPanel() {
+		return pnlSearch;
+	}
+
+	/**
 	 * Return the currently displayed JavaTextArea.
 	 * 
 	 * @return
@@ -366,4 +375,5 @@ public class MainWindow {
 	public JavaTextArea getSourceArea() {
 		return currentSource;
 	}
+
 }

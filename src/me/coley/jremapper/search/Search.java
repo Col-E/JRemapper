@@ -34,6 +34,15 @@ public class Search {
 		this.callback = callback;
 	}
 
+	/**
+	 * Search for the given text in all loaded class's UTF8 constants.
+	 * 
+	 * @param mode
+	 *            Text search mode.
+	 * @param text
+	 *            Text to search.
+	 * @return
+	 */
 	@SuppressWarnings("rawtypes")
 	public DefaultMutableTreeNode searchUTF8(int mode, String text) {
 		DefaultMutableTreeNode root = new DefaultMutableTreeNode(text);
