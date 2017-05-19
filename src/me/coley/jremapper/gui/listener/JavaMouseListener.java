@@ -19,7 +19,7 @@ public class JavaMouseListener implements MouseListener {
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		text.setCanParse(true);
-		if (e.getButton() == MouseEvent.BUTTON3) {
+		if (e.getButton() == MouseEvent.BUTTON3 &&  text.getSelectedMapping() != null) {
 			new MemberSelectionMenu(callback, text).show(e.getComponent(), e.getX(), e.getY());
 		}
 	}
