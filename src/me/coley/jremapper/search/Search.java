@@ -12,6 +12,7 @@ import me.coley.bmf.JarReader;
 import me.coley.bmf.MemberNode;
 import me.coley.bmf.consts.*;
 import me.coley.bmf.mapping.ClassMapping;
+import me.coley.bmf.mapping.MemberMapping;
 import me.coley.bmf.type.Type;
 import me.coley.bmf.util.ConstUtil;
 import me.coley.bmf.util.StreamUtil;
@@ -114,9 +115,6 @@ public class Search {
 							String combined = memberOwner + " " + memberName + (meth ? "" : " ") + memberDesc;
 							mtn.add(new SearchResultTreeNode(mtn, combined));
 						}
-					} else {
-						System.err.println("The hell?");
-
 					}
 				}
 			}
@@ -160,6 +158,41 @@ public class Search {
 		return root;
 	}
 
+	public DefaultMutableTreeNode searchMember(MemberMapping mm) {
+		DefaultMutableTreeNode root = new DefaultMutableTreeNode(mm.toString());
+		JarReader jar = callback.getJarReader();
+		boolean isMethod = mm.desc.original.startsWith("(");
+		// Sort at this stage rather than sorting the root later.
+		// Its not worth the trouble later on.
+		// @formatter:off
+		for (String name : StreamUtil.listOfSortedJavaNames(jar.getClassEntries().keySet())) {
+			ClassNode cn = jar.getClassEntries().get(name);
+			ClassMapping cm = jar.getMapping().getMapping(name);
+			MappingTreeNode mtn = new MappingTreeNode(cm.name.getValue(), cm);
+			String space = isMethod ? "" : " ";			
+			cn.constants.stream()
+				.filter(c -> c instanceof AbstractMemberConstant)
+				.map(c -> ((AbstractMemberConstant)c))
+				.map(c -> ((ConstNameType) cn.getConst(c.getNameTypeIndex())))
+				.filter(c -> matchesNameDesc(cn, c, mm))
+				.forEach(
+						c -> mtn.add(new SearchResultTreeNode(mtn,
+								ConstUtil.getUTF8(cn, c.getNameIndex()) + space + ConstUtil.getUTF8(cn, c.getDescIndex())))
+						);
+			if (!mtn.isLeaf()) {
+				root.add(mtn);
+			}
+		}
+		// @formatter:on
+		return root;
+	}
+
+	private boolean matchesNameDesc(ClassNode cn, ConstNameType c, MemberMapping mm) {
+		ConstUTF8 utfName = (ConstUTF8) cn.getConst(c.getNameIndex());
+		ConstUTF8 utfDesc = (ConstUTF8) cn.getConst(c.getDescIndex());
+		return mm.name.getValue().equals(utfName.getValue()) && mm.desc.toDesc().equals(utfDesc.getValue());
+	}
+
 	private boolean isPrim(String search, boolean methods) {
 		int l = search.length();
 		if (methods) {
@@ -168,5 +201,4 @@ public class Search {
 			return l == 1 && Type.readPrim(search.charAt(0)) != null;
 		}
 	}
-
 }
