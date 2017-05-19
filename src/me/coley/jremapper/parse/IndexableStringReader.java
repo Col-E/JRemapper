@@ -33,12 +33,16 @@ public class IndexableStringReader extends StringReader {
 	 */
 	public String nextWord() throws IOException {
 		StringBuilder sb = new StringBuilder();
+		boolean isQuote = false;
 		while (true) {
 			char c = (char) this.read();
-			// TODO:
-			// if enclosed in " or ' read spaces and delims. Count the entire string as a word.
-			if (isDelimiter(c)) {
+			// TODO: Verify this reads quotes as whole words.
+			// Context system doesn't yet handle method bodies, but eventually
+			// it should.
+			if (isDelimiter(c) && !isQuote) {
 				break;
+			} else if (c == '"') {
+				isQuote = !isQuote;
 			} else {
 				sb.append(c);
 			}
