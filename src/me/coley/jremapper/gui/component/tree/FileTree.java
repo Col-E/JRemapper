@@ -45,7 +45,7 @@ public class FileTree extends JPanel {
 		String jarName = read.getFile().getName();
 		MappingTreeNode root = new MappingTreeNode(jarName, null);
 		DefaultTreeModel model = new DefaultTreeModel(root);
-		FileSelectionListener sel = new FileSelectionListener(callback);
+		FileSelectionListener sel = new FileSelectionListener(tree, callback);
 		tree.addTreeSelectionListener(sel);
 		tree.addMouseListener(sel);
 		tree.setModel(model);
@@ -58,7 +58,7 @@ public class FileTree extends JPanel {
 			ClassMapping mapping = read.getMapping().getMapping(className);
 			String curName = mapping.name.getValue();
 			// Create directory path based on current mapping stored name.
-			ArrayList<String> dirPath = new ArrayList<String>(Arrays.asList(curName.split("/")));
+			List<String> dirPath = new ArrayList<>(Arrays.asList(curName.split("/")));
 			// Create directory of nodes
 			generateTreePath(root, dirPath, mapping, model);
 		}
@@ -75,8 +75,8 @@ public class FileTree extends JPanel {
 	public void update(JarReader read, String originalName, String newPathName) {
 		ClassMapping mapping = read.getMapping().getMapping(originalName);
 		String curPathName = mapping.name.getValue();
-		ArrayList<String> curPath = new ArrayList<String>(Arrays.asList(curPathName.split("/")));
-		ArrayList<String> newPath = new ArrayList<String>(Arrays.asList(newPathName.split("/")));
+		List<String> curPath = new ArrayList<>(Arrays.asList(curPathName.split("/")));
+		List<String> newPath = new ArrayList<>(Arrays.asList(newPathName.split("/")));
 		DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
 		//
 		MappingTreeNode root = (MappingTreeNode) tree.getModel().getRoot();
@@ -93,7 +93,7 @@ public class FileTree extends JPanel {
 	 * @param dirPath
 	 * @param model
 	 */
-	private void removeTreePath(MappingTreeNode parent, ArrayList<String> dirPath, DefaultTreeModel model) {
+	private void removeTreePath(MappingTreeNode parent, List<String> dirPath, DefaultTreeModel model) {
 		while (dirPath.size() > 0) {
 			String section = dirPath.get(0);
 			MappingTreeNode node = parent.getChild(section);
@@ -122,7 +122,7 @@ public class FileTree extends JPanel {
 	 * @param mapping
 	 * @param model
 	 */
-	private void generateTreePath(MappingTreeNode parent, ArrayList<String> dirPath, ClassMapping mapping, DefaultTreeModel model) {
+	private void generateTreePath(MappingTreeNode parent, List<String> dirPath, ClassMapping mapping, DefaultTreeModel model) {
 		while (dirPath.size() > 0) {
 			String section = dirPath.get(0);
 			MappingTreeNode node;

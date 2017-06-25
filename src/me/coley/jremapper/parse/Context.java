@@ -12,7 +12,7 @@ import me.coley.bmf.mapping.MemberMapping;
 import me.coley.jremapper.Program;
 
 public class Context {
-	private final static List<String> ID_FLOW = Arrays.asList("if ", "else", "do", "while", "for", "continue", "break");
+	//private final static List<String> ID_FLOW = Arrays.asList("if ", "else", "do", "while", "for", "continue", "break");
 	private final static List<String> ID_MODIFIERS = Arrays.asList("abstract", "final", "interface", "native", "private", "protected", "public", "static", "strict", "synchronized", "transient",
 			"volatile");
 	private final static List<String> ID_PRIMITIVES = Arrays.asList("void", "boolean", "byte", "char", "short", "int", "long", "float", "double");
