@@ -75,11 +75,14 @@ public class Context {
 					lastType = readHeader(read, lastType, currentSimple, elem);
 				} else {
 					if (ID_MODIFIERS.contains(elem)) {
-						while (ID_MODIFIERS.contains(elem)) {
+						do {
 							elem = read.nextWord();
-						}
+						} while (ID_MODIFIERS.contains(elem));
+						
 						if (elem.equals("/*")) {
-							read.skipWords(2);
+							while (!elem.endsWith("*/")) {
+								elem = read.nextWord();
+							} 
 							elem = read.nextWord();
 						}
 						readMember(read, currentSimple, elem);
@@ -248,12 +251,12 @@ public class Context {
 		} else {
 			data = type;
 		}
-
+		
 		// Handle parsing data
 		if (isDataOfMethod) {
 			// No arguments for method
 			if (data.endsWith("()")) {
-				MemberMapping mm = callback.getCurrentClass().getMemberMapping(name, "()" + retType);
+				MemberMapping mm = callback.getCurrentClass().getMemberMappingWithRenaming(name, "()" + retType);
 				if (mm != null) {
 					fill(read, name, mm, 2);
 				}
@@ -309,14 +312,14 @@ public class Context {
 				}
 				// Finish up the method descriptor and
 				sbDesc.append(")" + retType);
-				MemberMapping mm = callback.getCurrentClass().getMemberMapping(name, sbDesc.toString());
+				MemberMapping mm = callback.getCurrentClass().getMemberMappingWithRenaming(name, sbDesc.toString());
 				if (mm != null) {
 					fill(read, name, mm, read.getIndex() - nameIndex);
 				}
 			}
 		} else {
 			// Fields are super simple
-			MemberMapping mm = callback.getCurrentClass().getMemberMapping(name, retType);
+			MemberMapping mm = callback.getCurrentClass().getMemberMappingWithRenaming(name, retType);
 			if (mm != null) {
 				fill(read, name, mm, fieldDeclared ? 0 : 1);
 			}

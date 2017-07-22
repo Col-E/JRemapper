@@ -31,7 +31,7 @@ public class CFRResourceLookup {
 			if (jar.getClassEntries().containsKey(path)) {
 				bytes = ClassWriter.write(classes.get(path));
 			} else {
-				// It sucks that we need to itterate all the mappings, but for
+				// It sucks that we need to iterate all the mappings, but for
 				// now I don't have a way to make an easy rename-->oldname
 				// lookup.
 				for (ClassMapping cm : jar.getMapping().getMappings().values()) {
