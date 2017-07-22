@@ -12,13 +12,16 @@ import me.coley.bmf.mapping.MemberMapping;
 import me.coley.jremapper.Program;
 
 public class Context {
-	//private final static List<String> ID_FLOW = Arrays.asList("if ", "else", "do", "while", "for", "continue", "break");
-	private final static List<String> ID_MODIFIERS = Arrays.asList("abstract", "final", "interface", "native", "private", "protected", "public", "static", "strict", "synchronized", "transient",
-			"volatile");
-	private final static List<String> ID_PRIMITIVES = Arrays.asList("void", "boolean", "byte", "char", "short", "int", "long", "float", "double");
+	// private final static List<String> ID_FLOW = Arrays.asList("if ", "else",
+	// "do", "while", "for", "continue", "break");
+	private final static List<String> ID_MODIFIERS = Arrays.asList("abstract", "final", "interface", "native",
+			"private", "protected", "public", "static", "strict", "synchronized", "transient", "volatile");
+	private final static List<String> ID_PRIMITIVES = Arrays.asList("void", "boolean", "byte", "char", "short", "int",
+			"long", "float", "double");
 	private final static List<String> ID_PRIMITIVES_SYMBOL = Arrays.asList("V", "Z", "B", "C", "S", "I", "J", "F", "D");
 	private final static List<String> ID_LANG = Arrays.asList("String", "System", "StringBuilder");
-	private final static List<String> ID_LANG_SYMBOL = Arrays.asList("Ljava/lang/String;", "Ljava/lang/System;", "Ljava/lang/StringBuilder;");
+	private final static List<String> ID_LANG_SYMBOL = Arrays.asList("Ljava/lang/String;", "Ljava/lang/System;",
+			"Ljava/lang/StringBuilder;");
 	private final static String ID_PACKAGE = "package";
 	private final static String ID_IMPORT = "import";
 	private final static String ID_CLASS = "class";
@@ -78,11 +81,11 @@ public class Context {
 						do {
 							elem = read.nextWord();
 						} while (ID_MODIFIERS.contains(elem));
-						
+
 						if (elem.equals("/*")) {
 							while (!elem.endsWith("*/")) {
 								elem = read.nextWord();
-							} 
+							}
 							elem = read.nextWord();
 						}
 						readMember(read, currentSimple, elem);
@@ -135,13 +138,15 @@ public class Context {
 		simpleToQuantified.put(importedSimple, imported);
 	}
 
-	private Segment readHeader(IndexableStringReader read, Segment lastType, String currentSimple, String elem) throws IOException {
+	private Segment readHeader(IndexableStringReader read, Segment lastType, String currentSimple, String elem)
+			throws IOException {
 		// If the last words were dealing with packages or imports,
 		// the next one is the class declaration.
 		if (lastType == Segment.PACKAGE || lastType == Segment.IMPORT) {
 			// Handle declaration
 			boolean isClass = false, isEnum = false, isInterface = false;
-			if ((isClass = elem.equals(ID_CLASS)) || (isEnum = elem.equals(ID_ENUM)) || (isInterface = elem.equals(ID_INTERFACE))) {
+			if ((isClass = elem.equals(ID_CLASS)) || (isEnum = elem.equals(ID_ENUM))
+					|| (isInterface = elem.equals(ID_INTERFACE))) {
 				String clazz = read.nextWord();
 				if (clazz.equals(currentSimple)) {
 					fill(read, clazz, callback.getCurrentClass());
@@ -157,8 +162,7 @@ public class Context {
 				} else {
 					// Declared class is not the one selected from
 					// the class tree menu...
-					if (debug)
-						System.out.println("NON-CURRENT CLASS: " + clazz);
+					if (debug) System.out.println("NON-CURRENT CLASS: " + clazz);
 				}
 				lastType = Segment.CLASS;
 			}
@@ -186,7 +190,7 @@ public class Context {
 	}
 
 	private void readMember(IndexableStringReader read, String currentSimple, String elem) throws IOException {
-		if (elem.contains("<")){
+		if (elem.contains("<")) {
 			// Cut off generics
 			elem = elem.substring(0, elem.indexOf("<"));
 		}
@@ -218,8 +222,7 @@ public class Context {
 			int offset = type.length() - type.indexOf("(");
 			fill(read, currentSimple, callback.getCurrentClass(), offset);
 		} else {
-			if (debug)
-				System.out.println("UNKNOWN MEMBER TYPE: " + type);
+			if (debug) System.out.println("UNKNOWN MEMBER TYPE: " + type);
 		}
 		// Prepend array for depth-times
 		while (arrayDepth > 0) {
@@ -251,7 +254,7 @@ public class Context {
 		} else {
 			data = type;
 		}
-		
+
 		// Handle parsing data
 		if (isDataOfMethod) {
 			// No arguments for method
@@ -270,7 +273,8 @@ public class Context {
 				// Collect arguments to build the full method desc.
 				StringBuilder sbDesc = new StringBuilder("(");
 				while (true) {
-					while (argType.equals(ID_FINAL)) {
+					// Skip arg modifiers
+					while (ID_MODIFIERS.contains(argType)) {
 						argType = read.nextWord();
 					}
 					// Read array level from type
@@ -285,13 +289,20 @@ public class Context {
 					} else if (ID_PRIMITIVES.contains(argType)) {
 						desc = ID_PRIMITIVES_SYMBOL.get(ID_PRIMITIVES.indexOf(argType));
 					} else {
-						String argTypeFull = simpleToQuantified.get(argType);
-						ClassMapping cm = getClass(argTypeFull);
-						if (cm != null) {
-							fill(read, argType, cm);
+						// Check if method is abstract, if so it will mistake
+						// this for an arg
+						if (!argType.contains(");")) {
+							String argTypeFull = simpleToQuantified.get(argType);
+							ClassMapping cm = getClass(argTypeFull);
+							if (cm != null) {
+								fill(read, argType, cm);
+							}
+							desc = "L" + argTypeFull + ";";
+						} else {
+							// Fix for mis-interpreted ending arg for abstract
+							// methods.
+							desc = "";
 						}
-						desc = "L" + argTypeFull + ";";
-
 					}
 					// Add array level to arg in desc
 					while (arrayDepth > 0) {
@@ -310,8 +321,11 @@ public class Context {
 						break;
 					}
 				}
+
 				// Finish up the method descriptor and
 				sbDesc.append(")" + retType);
+				System.out.println(name + ":" + sbDesc.toString());
+
 				MemberMapping mm = callback.getCurrentClass().getMemberMappingWithRenaming(name, sbDesc.toString());
 				if (mm != null) {
 					fill(read, name, mm, read.getIndex() - nameIndex);
@@ -364,8 +378,7 @@ public class Context {
 		int index = read.getIndex();
 		int start = index - element.length() - leftShift;
 		int end = index - leftShift;
-		if (debug)
-			System.out.println("\t" + start + ":" + end + " -> " + mapping.name.original);
+		if (debug) System.out.println("\t" + start + ":" + end + " -> " + mapping.name.original);
 		Arrays.fill(mappings, start, end, mapping);
 	}
 
@@ -377,7 +390,7 @@ public class Context {
 	 */
 	private ClassMapping getClass(String name) {
 		ClassMapping cm = callback.getJarReader().getMapping().getMapping(name);
-		if (cm == null ) {
+		if (cm == null) {
 			// Probably renamed. Check if we have a mapping that matches.
 			for (ClassMapping cm2 : callback.getJarReader().getMapping().getMappings().values()) {
 				if (cm2.name.getValue().equals(name)) {
