@@ -29,7 +29,6 @@ public class Context {
 	private final static String ID_IMPLEMENTS = "implements";
 	private final static String ID_EXTENDS = "extends";
 	private final static String ID_ENUM = "enum";
-	private final static String ID_FINAL = "final";
 	private final static boolean debug = false;
 	private ClassType thisType;
 	private Map<String, String> simpleToQuantified = new HashMap<>();
@@ -324,8 +323,6 @@ public class Context {
 
 				// Finish up the method descriptor and
 				sbDesc.append(")" + retType);
-				System.out.println(name + ":" + sbDesc.toString());
-
 				MemberMapping mm = callback.getCurrentClass().getMemberMappingWithRenaming(name, sbDesc.toString());
 				if (mm != null) {
 					fill(read, name, mm, read.getIndex() - nameIndex);

@@ -10,9 +10,13 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import me.coley.bmf.ClassNode;
 import me.coley.bmf.JarReader;
 import me.coley.bmf.MemberNode;
+import me.coley.bmf.MethodNode;
 import me.coley.bmf.consts.*;
 import me.coley.bmf.mapping.ClassMapping;
 import me.coley.bmf.mapping.MemberMapping;
+import me.coley.bmf.opcode.AbstractFieldOpcode;
+import me.coley.bmf.opcode.AbstractMethodOpcode;
+import me.coley.bmf.opcode.Opcode;
 import me.coley.bmf.type.Type;
 import me.coley.bmf.util.ConstUtil;
 import me.coley.bmf.util.StreamUtil;
@@ -102,8 +106,7 @@ public class Search {
 				boolean meth = mode == CLASS_REFERENCE_METHODS;
 				for (int i = 0; i < cn.constants.size(); i++) {
 					Constant c = cn.constants.get(i);
-					if (c == null || c.type != (meth ? ConstantType.METHOD : ConstantType.FIELD))
-						continue;
+					if (c == null || c.type != (meth ? ConstantType.METHOD : ConstantType.FIELD)) continue;
 					if (c instanceof AbstractMemberConstant) {
 						AbstractMemberConstant amc = (AbstractMemberConstant) c;
 						String memberOwner = ConstUtil.getClassName(cn, amc.getClassIndex());
@@ -158,42 +161,59 @@ public class Search {
 		return root;
 	}
 
-	public DefaultMutableTreeNode searchMember(MemberMapping mm) {
+	public DefaultMutableTreeNode searchMember(ClassMapping memberOwner, MemberMapping mm) {
 		DefaultMutableTreeNode root = new DefaultMutableTreeNode(mm.toString());
 		JarReader jar = callback.getJarReader();
 		boolean isMethod = mm.desc.original.startsWith("(");
 		// Sort at this stage rather than sorting the root later.
 		// Its not worth the trouble later on.
-		// @formatter:off
 		for (String name : StreamUtil.listOfSortedJavaNames(jar.getClassEntries().keySet())) {
 			ClassNode cn = jar.getClassEntries().get(name);
 			ClassMapping cm = jar.getMapping().getMapping(name);
 			MappingTreeNode mtn = new MappingTreeNode(cm.name.getValue(), cm);
-			String space = isMethod ? "" : " ";			
-			cn.constants.stream()
-				.filter(c -> c instanceof AbstractMemberConstant)
-				.map(c -> ((AbstractMemberConstant)c))
-				.map(c -> ((ConstNameType) cn.getConst(c.getNameTypeIndex())))
-				.filter(c -> matchesNameDesc(cn, c, mm))
-				.forEach(
-						c -> mtn.add(new SearchResultTreeNode(mtn,
-								ConstUtil.getUTF8(cn, c.getNameIndex()) + space + ConstUtil.getUTF8(cn, c.getDescIndex())))
-						);
+			for (MethodNode mn : cn.methods) {
+				if (mn.code != null && mn.code.opcodes != null) {
+					for (Opcode op : mn.code.opcodes.opcodes) {
+						AbstractMemberConstant amc = getMemberConstantFromOpcode(cn, op, isMethod);
+						if (amc == null) {
+							continue;
+						}
+						// Check for proper owner
+						String className = ConstUtil.getClassName(cn, amc.getClassIndex());
+						if (className.equals(memberOwner.name.getValue())) {
+							ConstNameType cnt = (ConstNameType) cn.getConst(amc.getNameTypeIndex());
+							if (matchesNameDesc(cn, cnt, mm)) {
+								mtn.add(new SearchResultTreeNode(mtn,
+										ConstUtil.getUTF8(cn, mn.name) + " " + ConstUtil.getUTF8(cn, mn.desc)));
+							}
+						}
+					}
+				}
+			}
 			if (!mtn.isLeaf()) {
 				root.add(mtn);
 			}
 		}
-		// @formatter:on
 		return root;
 	}
 
-	private boolean matchesNameDesc(ClassNode cn, ConstNameType c, MemberMapping mm) {
-		ConstUTF8 utfName = (ConstUTF8) cn.getConst(c.getNameIndex());
-		ConstUTF8 utfDesc = (ConstUTF8) cn.getConst(c.getDescIndex());
-		return mm.name.getValue().equals(utfName.getValue()) && mm.desc.toDesc().equals(utfDesc.getValue());
+	private static AbstractMemberConstant getMemberConstantFromOpcode(ClassNode cn, Opcode op, boolean isMethod) {
+		if (isMethod && op instanceof AbstractMethodOpcode) {
+			AbstractMethodOpcode amo = (AbstractMethodOpcode) op;
+			return (AbstractMemberConstant) cn.getConst(amo.methodIndex);
+		} else if (!isMethod && op instanceof AbstractFieldOpcode) {
+			AbstractFieldOpcode afo = (AbstractFieldOpcode) op;
+			return (AbstractMemberConstant) cn.getConst(afo.fieldIndex);
+		}
+		return null;
 	}
 
-	private boolean isPrim(String search, boolean methods) {
+	private static boolean matchesNameDesc(ClassNode cn, ConstNameType c, MemberMapping mm) {
+		return mm.name.getValue().equals(ConstUtil.getUTF8(cn, c.getNameIndex()))
+				&& mm.desc.toDesc().equals(ConstUtil.getUTF8(cn, c.getDescIndex()));
+	}
+
+	private static boolean isPrim(String search, boolean methods) {
 		int l = search.length();
 		if (methods) {
 			return l == 3 && Type.readPrim(search.charAt(2)) != null;

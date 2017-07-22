@@ -59,7 +59,7 @@ public class MemberSelectionMenu extends JPopupMenu {
 			itemReferences.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					DefaultMutableTreeNode root = callback.getSearcher().searchMember(mm);
+					DefaultMutableTreeNode root = callback.getSearcher().searchMember(callback.getCurrentClass(), mm);
 					callback.getWindow().getSearchPanel().setResults(root);
 				}
 			});
