@@ -377,8 +377,13 @@ public class Context {
 	 */
 	private ClassMapping getClass(String name) {
 		ClassMapping cm = callback.getJarReader().getMapping().getMapping(name);
-		if (cm == null && callback.getHistory().getRenamedToMappingMap().containsKey(name)) {
-			return (ClassMapping) callback.getHistory().getRenamedToMappingMap().get(name);
+		if (cm == null ) {
+			// Probably renamed. Check if we have a mapping that matches.
+			for (ClassMapping cm2 : callback.getJarReader().getMapping().getMappings().values()) {
+				if (cm2.name.getValue().equals(name)) {
+					return cm2;
+				}
+			}
 		}
 		return cm;
 	}
