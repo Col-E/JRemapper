@@ -14,8 +14,6 @@ public class Main {
 		}
 		Program program = new Program();
 		program.showGui();
-		//program.onFileSelect(new java.io.File("JRemapper.jar"));
-		//program.onClassSelect(program.getJarReader().getMapping().getOrCreateClassMapping("me/coley/bmf/FieldNode"));
 	}
 
 }

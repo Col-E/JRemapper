@@ -7,10 +7,13 @@ import org.benf.cfr.reader.api.ClassFileSource;
 import org.benf.cfr.reader.bytecode.analysis.parse.utils.Pair;
 
 public class CFRSourceImpl implements ClassFileSource {
-	private final byte[] bytes;
+	/**
+	 * Lookup assistor for inner classes and other references.
+	 */
+	private final CFRResourceLookup resources;
 
-	public CFRSourceImpl(byte[] bytes) {
-		this.bytes = bytes;
+	public CFRSourceImpl(CFRResourceLookup resources) {
+		this.resources = resources;
 	}
 
 	@Override
@@ -27,7 +30,8 @@ public class CFRSourceImpl implements ClassFileSource {
 	}
 
 	@Override
-	public Pair<byte[], String> getClassFileContent(String s) throws IOException {
-		return Pair.make(bytes, s);
+	public Pair<byte[], String> getClassFileContent(String pathOrName) throws IOException {
+		pathOrName = pathOrName.substring(0, pathOrName.length() - ".class".length());
+		return Pair.make(resources.get(pathOrName), pathOrName);
 	}
 }

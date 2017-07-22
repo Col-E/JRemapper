@@ -16,7 +16,7 @@ public enum CFRSetting {
 	DECODE_STRING_SWITCH("decodestringswitch", "Decode String Switch", true),
 	ARRAYITER("arrayiter", "Arrayiter", true),
 	COLLECTIONITER("collectioniter", "Collectioniter", true),
-	INNER_CLASSES("innerclasses", "Inner Classes"),
+	INNER_CLASSES("innerclasses", "Inner Classes", true),
 	REMOVE_BOILER_PLATE("removeboilerplate", "Remove Boiler Plate", true),
 	REMOVE_INNER_CLASS_SYNTHETICS("removeinnerclasssynthetics", "Remove Inner Class Synthetics", true),
 	DECODE_LAMBDAS("decodelambdas", "Decode Lambdas", true),
@@ -29,9 +29,9 @@ public enum CFRSetting {
 	SHOW_VERSION("showversion", "Show Version"),
 	DECODE_FINALLY("decodefinally", "Decode Finally", true),
 	TIDY_MONITORS("tidymonitors", "Tidy Monitors", true),
-	LENIENT("lenient", "Lenient"),
+	LENIENT("lenient", "Lenient", true),
 	DUMP_CLASS_PATH("dumpclasspath", "Dump Classpath"),
-	COMMENTS("comments", "Comments", true),
+	COMMENTS("comments", "Comments"),
 	FORCE_TOP_SORT("forcetopsort", "Force Top Sort", true),
 	FORCE_TOP_SORT_AGGRESSIVE("forcetopsortaggress", "Force Top Sort Aggressive", true),
 	STRINGBUFFER("stringbuffer", "StringBuffer"),
@@ -40,7 +40,7 @@ public enum CFRSetting {
 	RECOVER("recover", "Recover", true),
 	ECLIPSE("eclipse", "Eclipse", true),
 	OVERRIDE("override", "Override", true),
-	SHOW_INFERRABLE("showinferrable", "Show Inferrable", true),
+	SHOW_INFERRABLE("showinferrable", "Show Inferrable", false),
 	FORCE_AGGRESSIVE_EXCEPTION_AGG("aexagg", "Force Aggressive Exception Aggregation", true),
 	FORCE_COND_PROPAGATE("forcecondpropagate", "Force Conditional Propogation", true),
 	HIDE_UTF("hideutf", "Hide UTF", true),
@@ -54,7 +54,7 @@ public enum CFRSetting {
 	RECOVER_TYPE_HINTS("recovertypehints", "Recover Type Hints", true),
 	FORCE_RETURNING_IFS("forcereturningifs", "Force Returning Ifs", true),
 	FOR_LOOP_AGG_CAPTURE("forloopaggcapture", "For Loop Aggressive Capture", true),
-	RENAME_ILLEGAL_IDENTIFIERS("renameillegalidents", "Rename illegal identifiers", true),
+	RENAME_ILLEGAL_IDENTIFIERS("renameillegalidents", "Rename illegal identifiers", false),
 	RENAME_DUPE_MEMBERS("renamedupmembers", "Rename duplicated member names", false);
 	//@formatter:on
 
