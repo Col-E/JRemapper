@@ -150,7 +150,6 @@ public class Context {
 			if ((isClass = elem.equals(ID_CLASS)) || (isEnum = elem.equals(ID_ENUM))
 					|| (isInterface = elem.equals(ID_INTERFACE))) {
 				String clazz = read.nextWord();
-				System.out.println("C: " + clazz + " - " + currentSimple);
 				if (clazz.equals(currentSimple)) {
 					fill(read, clazz, callback.getCurrentClass());
 					// Mark what kind of class this is. Will be used
