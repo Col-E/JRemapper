@@ -52,8 +52,11 @@ public class Context {
 		IndexableStringReader read = new IndexableStringReader(text);
 		String current = callback.getCurrentClass().name.getValue();
 		String currentSimple = current.substring(current.lastIndexOf("/") + 1);
+		// Check if $ is used in a scenario likely to indicate an inner class.
+		if (currentSimple.indexOf("$") > 0) {
+			currentSimple = currentSimple.replace("$", ".");
+		}
 		simpleToQuantified.put(currentSimple, current);
-
 		context = new ContextType[text.length()];
 		mappings = new AbstractMapping[text.length()];
 		Arrays.fill(context, ContextType.UNKNOWN);
@@ -147,6 +150,7 @@ public class Context {
 			if ((isClass = elem.equals(ID_CLASS)) || (isEnum = elem.equals(ID_ENUM))
 					|| (isInterface = elem.equals(ID_INTERFACE))) {
 				String clazz = read.nextWord();
+				System.out.println("C: " + clazz + " - " + currentSimple);
 				if (clazz.equals(currentSimple)) {
 					fill(read, clazz, callback.getCurrentClass());
 					// Mark what kind of class this is. Will be used

@@ -16,7 +16,7 @@ public enum CFRSetting {
 	DECODE_STRING_SWITCH("decodestringswitch", "Decode String Switch", true),
 	ARRAYITER("arrayiter", "Arrayiter", true),
 	COLLECTIONITER("collectioniter", "Collectioniter", true),
-	INNER_CLASSES("innerclasses", "Inner Classes", true),
+	INNER_CLASSES("innerclasses", "Inner Classes", false),
 	REMOVE_BOILER_PLATE("removeboilerplate", "Remove Boiler Plate", true),
 	REMOVE_INNER_CLASS_SYNTHETICS("removeinnerclasssynthetics", "Remove Inner Class Synthetics", true),
 	DECODE_LAMBDAS("decodelambdas", "Decode Lambdas", true),

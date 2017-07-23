@@ -129,6 +129,17 @@ public class Search {
 		return root;
 	}
 
+	/**
+	 * Searches for members that match the given text
+	 * 
+	 * @param mode
+	 *            Search mode
+	 * @param methods
+	 *            If searching for methods <i>(As opposed to fields)</i>
+	 * @param text
+	 *            Text to search for.
+	 * @return
+	 */
 	public DefaultMutableTreeNode searchMember(int mode, boolean methods, String text) {
 		DefaultMutableTreeNode root = new DefaultMutableTreeNode(text);
 		JarReader jar = callback.getJarReader();
@@ -161,6 +172,13 @@ public class Search {
 		return root;
 	}
 
+	/**
+	 * Searches for references to the given member.
+	 * 
+	 * @param memberOwner
+	 * @param mm
+	 * @return
+	 */
 	public DefaultMutableTreeNode searchMember(ClassMapping memberOwner, MemberMapping mm) {
 		DefaultMutableTreeNode root = new DefaultMutableTreeNode(mm.toString());
 		JarReader jar = callback.getJarReader();
