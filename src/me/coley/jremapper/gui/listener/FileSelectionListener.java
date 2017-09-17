@@ -35,7 +35,6 @@ public class FileSelectionListener implements TreeSelectionListener, MouseListen
 				MappingTreeNode mtn = (MappingTreeNode) node;
 				callback.onClassSelect(mtn.getMapping());
 			}
-			
 		}
 	}
 

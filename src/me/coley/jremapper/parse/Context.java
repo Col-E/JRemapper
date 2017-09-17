@@ -19,9 +19,6 @@ public class Context {
 	private final static List<String> ID_PRIMITIVES = Arrays.asList("void", "boolean", "byte", "char", "short", "int",
 			"long", "float", "double");
 	private final static List<String> ID_PRIMITIVES_SYMBOL = Arrays.asList("V", "Z", "B", "C", "S", "I", "J", "F", "D");
-	private final static List<String> ID_LANG = Arrays.asList("String", "System", "StringBuilder");
-	private final static List<String> ID_LANG_SYMBOL = Arrays.asList("Ljava/lang/String;", "Ljava/lang/System;",
-			"Ljava/lang/StringBuilder;");
 	private final static String ID_PACKAGE = "package";
 	private final static String ID_IMPORT = "import";
 	private final static String ID_CLASS = "class";
@@ -69,7 +66,6 @@ public class Context {
 					read.skipWords(5);
 					continue;
 				}
-
 				if (elem.equals(ID_PACKAGE)) {
 					lastType = Segment.PACKAGE;
 					readPackage(read);
@@ -95,6 +91,8 @@ public class Context {
 						if (elem.endsWith(",") || elem.endsWith(";")) {
 
 						}
+					} else if (simpleToQuantified.containsKey(elem)) {
+						readMember(read, currentSimple, elem);
 					}
 					// TODO: What if there are no modifiers? IE: Default access
 					// How would it be checked if it's a member and not some
@@ -183,6 +181,13 @@ public class Context {
 					} else if (debug) {
 						System.out.println("MISSING EXTENDING / IMPLEMENTS: " + clazz);
 					}
+				} else if (hasClass(clazz)) {
+					ClassMapping cm = getClass(clazz);
+					if (cm != null) {
+						fill(read, clazz, cm);
+					} else if (debug) {
+						System.out.println("MISSING EXTENDING / IMPLEMENTS: " + clazz);
+					}
 				} else if (debug) {
 					System.out.println("MISSING EXTENDING / IMPLEMENTS: " + clazz);
 				}
@@ -208,12 +213,18 @@ public class Context {
 		// Get the return type
 		if (ID_PRIMITIVES.contains(type)) {
 			retTypeSuffic = ID_PRIMITIVES_SYMBOL.get(ID_PRIMITIVES.indexOf(type));
-		} else if (ID_LANG.contains(type)) {
-			retTypeSuffic = ID_LANG_SYMBOL.get(ID_LANG.indexOf(type));
-		} else if (simpleToQuantified.containsKey(type)) {
+		} if (simpleToQuantified.containsKey(type)) {
+			// From imported
 			String full = simpleToQuantified.get(type);
 			retTypeSuffic = "L" + full + ";";
 			ClassMapping cm = getClass(full);
+			if (cm != null) {
+				fill(read, type, cm);
+			}
+		} else if (hasClass(type)) {
+			// From default package
+			retTypeSuffic = "L" + type + ";";
+			ClassMapping cm = getClass(type);
 			if (cm != null) {
 				fill(read, type, cm);
 			}
@@ -286,15 +297,16 @@ public class Context {
 					}
 					// Fetch the arg's desc representation
 					String desc = null;
-					if (ID_LANG.contains(argType)) {
-						desc = ID_LANG_SYMBOL.get(ID_LANG.indexOf(argType));
-					} else if (ID_PRIMITIVES.contains(argType)) {
+					if (ID_PRIMITIVES.contains(argType)) {
 						desc = ID_PRIMITIVES_SYMBOL.get(ID_PRIMITIVES.indexOf(argType));
 					} else {
 						// Check if method is abstract, if so it will mistake
 						// this for an arg
 						if (!argType.contains(");")) {
 							String argTypeFull = simpleToQuantified.get(argType);
+							if (argTypeFull == null) {
+								argTypeFull =	argType;
+							}
 							ClassMapping cm = getClass(argTypeFull);
 							if (cm != null) {
 								fill(read, argType, cm);
@@ -339,6 +351,7 @@ public class Context {
 			}
 		}
 	}
+
 
 	private boolean inBody(Segment lastType) {
 		return lastType == Segment.BODY;
@@ -399,6 +412,10 @@ public class Context {
 			}
 		}
 		return cm;
+	}
+
+	private boolean hasClass(String type) {
+		return callback.getJarReader().getMapping().hasClass(type);
 	}
 
 	public AbstractMapping getMappingAtPoint(int index) {
