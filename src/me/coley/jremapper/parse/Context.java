@@ -35,6 +35,9 @@ public class Context {
 
 	public Context(Program callback) {
 		this.callback = callback;
+		for (int i = 0; i < ID_PRIMITIVES.size(); i++) {
+			simpleToQuantified.put(ID_PRIMITIVES.get(i), ID_PRIMITIVES_SYMBOL.get(i));
+		}
 	}
 
 	public ContextType getContextForLine(int line) {
@@ -198,8 +201,13 @@ public class Context {
 
 	private void readMember(IndexableStringReader read, String currentSimple, String elem) throws IOException {
 		if (elem.contains("<")) {
+			// Hack to skip to the end of the generic type parameters
+			String temp = elem;
+			while (!elem.contains(">")) {
+				elem = read.nextWord();
+			}
 			// Cut off generics
-			elem = elem.substring(0, elem.indexOf("<"));
+			elem = temp.substring(0, temp.indexOf("<"));
 		}
 		String name = null;
 		String retType = "";
@@ -211,12 +219,14 @@ public class Context {
 			arrayDepth++;
 		}
 		// Get the return type
-		if (ID_PRIMITIVES.contains(type)) {
-			retTypeSuffic = ID_PRIMITIVES_SYMBOL.get(ID_PRIMITIVES.indexOf(type));
-		} if (simpleToQuantified.containsKey(type)) {
+		if (simpleToQuantified.containsKey(type)) {
 			// From imported
 			String full = simpleToQuantified.get(type);
-			retTypeSuffic = "L" + full + ";";
+			if (ID_PRIMITIVES.contains(type)) {
+				retTypeSuffic = full;
+			} else {
+				retTypeSuffic = "L" + full + ";";
+			}
 			ClassMapping cm = getClass(full);
 			if (cm != null) {
 				fill(read, type, cm);
@@ -297,6 +307,7 @@ public class Context {
 					}
 					// Fetch the arg's desc representation
 					String desc = null;
+					boolean abstractEnd = false;
 					if (ID_PRIMITIVES.contains(argType)) {
 						desc = ID_PRIMITIVES_SYMBOL.get(ID_PRIMITIVES.indexOf(argType));
 					} else {
@@ -316,6 +327,7 @@ public class Context {
 							// Fix for mis-interpreted ending arg for abstract
 							// methods.
 							desc = "";
+							abstractEnd = true;
 						}
 					}
 					// Add array level to arg in desc
@@ -326,14 +338,20 @@ public class Context {
 					// Append to method desc
 					sbDesc.append(desc);
 					arrayDepth = 0;
-					String argName = read.nextWord();
-					// Check if there are more args to parse or break the reader
-					// loop if there are none.
-					if (argName.endsWith(",")) {
-						argType = read.nextWord();
-					} else {
+					if (abstractEnd) {
 						break;
+					} else {
+						String argName = read.nextWord();
+						// Check if there are more args to parse or break the reader
+						// loop if there are none.
+						if (argName.endsWith(",")) {
+							argType = read.nextWord();
+						} else {
+							break;
+						}
 					}
+
+					
 				}
 
 				// Finish up the method descriptor and
