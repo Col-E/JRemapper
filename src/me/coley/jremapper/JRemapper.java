@@ -273,6 +273,5 @@ public class JRemapper {
 		}
 		JRemapper program = new JRemapper();
 		program.showGui();
-		program.onFileSelect(new java.io.File("recaf.jar"));
 	}
 }
