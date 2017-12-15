@@ -1,4 +1,4 @@
-package me.coley.jremapper;
+package me.coley.jremapper.cfr;
 
 import java.util.HashMap;
 import java.util.Map;

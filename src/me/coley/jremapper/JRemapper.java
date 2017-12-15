@@ -4,16 +4,20 @@ import java.awt.EventQueue;
 import java.io.File;
 import java.io.IOException;
 import javax.swing.JFileChooser;
+import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.benf.cfr.reader.PluginRunner;
 
 import me.coley.bmf.JarReader;
 import me.coley.bmf.mapping.ClassMapping;
+import me.coley.jremapper.cfr.CFRResourceLookup;
+import me.coley.jremapper.cfr.CFRSetting;
+import me.coley.jremapper.cfr.CFRSourceImpl;
 import me.coley.jremapper.gui.MainWindow;
 import me.coley.jremapper.search.Search;
 
-public class Program {
+public class JRemapper {
 	private JarReader jar;
 	/**
 	 * GUI
@@ -256,5 +260,19 @@ public class Program {
 	 */
 	public Search getSearcher() {
 		return searcher;
+	}
+	
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		try {
+			UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		JRemapper program = new JRemapper();
+		program.showGui();
+		program.onFileSelect(new java.io.File("recaf.jar"));
 	}
 }

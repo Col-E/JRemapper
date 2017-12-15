@@ -1,4 +1,4 @@
-package me.coley.jremapper;
+package me.coley.jremapper.cfr;
 
 import java.io.IOException;
 import java.util.Map;
@@ -7,6 +7,7 @@ import me.coley.bmf.ClassNode;
 import me.coley.bmf.ClassWriter;
 import me.coley.bmf.JarReader;
 import me.coley.bmf.mapping.ClassMapping;
+import me.coley.jremapper.JRemapper;
 
 /**
  * Lookup helper for CFR since it requests this data in order to show anonymous
@@ -14,9 +15,9 @@ import me.coley.bmf.mapping.ClassMapping;
  * where this comes in.
  */
 public class CFRResourceLookup {
-	private Program program;
+	private JRemapper program;
 
-	public CFRResourceLookup(Program program) {
+	public CFRResourceLookup(JRemapper program) {
 		this.program = program;
 	}
 
@@ -43,7 +44,7 @@ public class CFRResourceLookup {
 				}
 			}
 		} catch (IOException e) {
-			program.getWindow().openTab("Error",
+			program.getWindow().openTab("Error: CFR",
 					"Error: Failed to sending bytes to CFR (Could not recompile via BMF)\n\n" + e.getMessage());
 		}
 		return bytes;

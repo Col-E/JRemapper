@@ -6,15 +6,15 @@ import javax.swing.event.CaretListener;
 import me.coley.bmf.mapping.AbstractMapping;
 import me.coley.bmf.mapping.ClassMapping;
 import me.coley.bmf.mapping.MemberMapping;
-import me.coley.jremapper.Program;
+import me.coley.jremapper.JRemapper;
 import me.coley.jremapper.gui.component.JavaTextArea;
 
 public class JavaCaretListener implements CaretListener {
-	private Program callback;
+	private JRemapper jremap;
 	private JavaTextArea text;
 
-	public JavaCaretListener(Program callback, JavaTextArea text) {
-		this.callback = callback;
+	public JavaCaretListener(JRemapper jremap, JavaTextArea text) {
+		this.jremap = jremap;
 		this.text = text;
 	}
 
@@ -30,16 +30,16 @@ public class JavaCaretListener implements CaretListener {
 		AbstractMapping am = text.getSelectedMapping();
 		boolean clazz = am instanceof ClassMapping;
 		if (am == null) {
-			callback.getWindow().setTitle("?");
-			callback.getWindow().getSourceArea().setEditable(false);
+			jremap.getWindow().setTitle("?");
+			jremap.getWindow().getSourceArea().setEditable(false);
 		} else {
-			callback.getWindow().getSourceArea().setEditable(true);
+			jremap.getWindow().getSourceArea().setEditable(true);
 			if (clazz){
-				callback.getWindow().setTitle("C : " + am.name.getValue());
+				jremap.getWindow().setTitle("C : " + am.name.getValue());
 			} else {
 				MemberMapping mm = (MemberMapping) am;
 				String prefix = mm.desc.original.contains("(") ? "M" : "F";
-				callback.getWindow().setTitle(prefix + " : " + am.name.getValue());
+				jremap.getWindow().setTitle(prefix + " : " + am.name.getValue());
 			}
 			text.setEditable(true);
 		}

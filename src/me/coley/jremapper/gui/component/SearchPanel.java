@@ -21,7 +21,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
-import me.coley.jremapper.Program;
+import me.coley.jremapper.JRemapper;
 import me.coley.jremapper.gui.component.tree.SearchRenderer;
 import me.coley.jremapper.gui.listener.SearchResultTreeListener;
 import me.coley.jremapper.search.Search;
@@ -33,13 +33,13 @@ public class SearchPanel extends JPanel {
 	private static final String SearchMembers = "Members";
 	private static final String SearchMemberMethod = "Methods";
 	private static final String SearchMemberField = "Fields";
-	private final Program callback;
+	private final JRemapper jremap;
 	private final JTree tree = new JTree(new String[] {});
 	private CardLayout layout;
 	private boolean searchMethodMembers;
 
-	public SearchPanel(Program callback) {
-		this.callback = callback;
+	public SearchPanel(JRemapper jremap) {
+		this.jremap = jremap;
 		setLayout(new BorderLayout());
 		setupSearchOptions();
 		setupSearchResults();
@@ -94,14 +94,14 @@ public class SearchPanel extends JPanel {
 		p.add(new JLabel("Non-strings:"));
 		p.add(searchNonStrings);
 		//
-		Function<String, DefaultMutableTreeNode> funcSAll = s -> callback.getSearcher().searchUTF8(Search.UTF_ALL, s);
+		Function<String, DefaultMutableTreeNode> funcSAll = s -> jremap.getSearcher().searchUTF8(Search.UTF_ALL, s);
 		searchAll.addKeyListener(new SearchAdapter(searchAll, funcSAll));
 		//
-		Function<String, DefaultMutableTreeNode> funcSStrings = s -> callback.getSearcher()
+		Function<String, DefaultMutableTreeNode> funcSStrings = s -> jremap.getSearcher()
 				.searchUTF8(Search.UTF_STRINGS, s);
 		searchStrings.addKeyListener(new SearchAdapter(searchStrings, funcSStrings));
 		//
-		Function<String, DefaultMutableTreeNode> funcSNonStrings = s -> callback.getSearcher()
+		Function<String, DefaultMutableTreeNode> funcSNonStrings = s -> jremap.getSearcher()
 				.searchUTF8(Search.UTF_NOTSTRINGS, s);
 		searchNonStrings.addKeyListener(new SearchAdapter(searchNonStrings, funcSNonStrings));
 		return p;
@@ -121,15 +121,15 @@ public class SearchPanel extends JPanel {
 		p.add(new JLabel("Field references to:"));
 		p.add(searchReferencesFields);
 		//
-		Function<String, DefaultMutableTreeNode> funcSNameContains = s -> callback.getSearcher()
+		Function<String, DefaultMutableTreeNode> funcSNameContains = s -> jremap.getSearcher()
 				.searchClass(Search.CLASS_NAME_CONTAINS, s);
 		searchContains.addKeyListener(new SearchAdapter(searchContains, funcSNameContains));
 		//
-		Function<String, DefaultMutableTreeNode> funcSMethodRefs = s -> callback.getSearcher()
+		Function<String, DefaultMutableTreeNode> funcSMethodRefs = s -> jremap.getSearcher()
 				.searchClass(Search.CLASS_REFERENCE_METHODS, s);
 		searchReferencesMethods.addKeyListener(new SearchAdapter(searchReferencesMethods, funcSMethodRefs));
 		//
-		Function<String, DefaultMutableTreeNode> funcSFieldRefs = s -> callback.getSearcher()
+		Function<String, DefaultMutableTreeNode> funcSFieldRefs = s -> jremap.getSearcher()
 				.searchClass(Search.CLASS_REFERENCE_FIELDS, s);
 		searchReferencesFields.addKeyListener(new SearchAdapter(searchReferencesFields, funcSFieldRefs));
 		//
@@ -167,11 +167,11 @@ public class SearchPanel extends JPanel {
 		});
 		searchMethodMembers = combo.getSelectedItem().toString().endsWith(SearchMemberMethod);
 		//
-		Function<String, DefaultMutableTreeNode> funcSMemberName = s -> callback.getSearcher()
+		Function<String, DefaultMutableTreeNode> funcSMemberName = s -> jremap.getSearcher()
 				.searchMember(Search.MEMBER_DEFINITION_NAME, this.searchMethodMembers, s);
 		searchNameContains.addKeyListener(new SearchAdapter(searchNameContains, funcSMemberName));
 		//
-		Function<String, DefaultMutableTreeNode> funcSMemberDesc = s -> callback.getSearcher()
+		Function<String, DefaultMutableTreeNode> funcSMemberDesc = s -> jremap.getSearcher()
 				.searchMember(Search.MEMBER_DEFINITION_DESC, this.searchMethodMembers, s);
 		searchDescContains.addKeyListener(new SearchAdapter(searchDescContains, funcSMemberDesc));
 		return p;
@@ -181,8 +181,8 @@ public class SearchPanel extends JPanel {
 		JPanel wrapper = new JPanel(new BorderLayout());
 		JScrollPane scrollTree = new JScrollPane(tree);
 		wrapper.add(scrollTree, BorderLayout.CENTER);
-		tree.setCellRenderer(new SearchRenderer(callback));
-		SearchResultTreeListener sel = new SearchResultTreeListener(callback);
+		tree.setCellRenderer(new SearchRenderer(jremap));
+		SearchResultTreeListener sel = new SearchResultTreeListener(jremap);
 		tree.addTreeSelectionListener(sel);
 		tree.addMouseListener(sel);
 		add(wrapper, BorderLayout.CENTER);

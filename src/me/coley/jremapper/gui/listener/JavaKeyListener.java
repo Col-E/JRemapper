@@ -7,16 +7,16 @@ import me.coley.bmf.mapping.AbstractMapping;
 import me.coley.bmf.mapping.ClassMapping;
 import me.coley.bmf.mapping.MemberMapping;
 import me.coley.jremapper.Options;
-import me.coley.jremapper.Program;
+import me.coley.jremapper.JRemapper;
 import me.coley.jremapper.gui.component.JavaTextArea;
 import me.coley.jremapper.util.StringUtil;
 
 public class JavaKeyListener implements KeyListener {
-	private final Program callback;
+	private final JRemapper jremap;
 	private final JavaTextArea text;
 
-	public JavaKeyListener(Program callback, JavaTextArea text) {
-		this.callback = callback;
+	public JavaKeyListener(JRemapper jremap, JavaTextArea text) {
+		this.jremap = jremap;
 		this.text = text;
 	}
 
@@ -37,38 +37,38 @@ public class JavaKeyListener implements KeyListener {
 			MemberMapping mm = am instanceof MemberMapping ? (MemberMapping) am : null;
 			int pos = text.getCaretPosition();
 			if (cm != null) {
-				boolean reg = callback.getOptions().get(Options.REGEX_REPLACE_CLASSES);
+				boolean reg = jremap.getOptions().get(Options.REGEX_REPLACE_CLASSES);
 				String orig = cm.name.original;
 				String origCut = orig.substring(orig.lastIndexOf("/") + 1);
 				String value = StringUtil.getWordAtIndex(text.getCaretPosition(), text.getText(), true);
 				String current = cm.name.getValue();
 				// Update rename history
-				callback.getHistory().onRename(cm, current, value);
+				jremap.getHistory().onRename(cm, current, value);
 				// Update tree path
 				// TODO: Account for inner classes with $ names
-				callback.updateTreePath(orig, value);
+				jremap.updateTreePath(orig, value);
 				// Rename mapping
 				cm.name.setValue(value);
-				if (cm.equals(callback.getCurrentClass())) {
+				if (cm.equals(jremap.getCurrentClass())) {
 					// Close tab with now outdated name
-					callback.getWindow().removeTab(current);
+					jremap.getWindow().removeTab(current);
 				}
 				// Update text area.
 				if (reg) {
 					String valueCut = cm.name.getValue().substring(cm.name.getValue().lastIndexOf("/") + 1);
 					text.setText(text.getText().replaceAll("\\b(" + origCut + ")\\b", valueCut));
 				} else {
-					callback.onClassSelect(callback.getCurrentClass());
+					jremap.onClassSelect(jremap.getCurrentClass());
 				}
 				// TODO: Better positon reset
 				text.setCaretPosition(pos);
 			} else if (mm != null) {
-				boolean reg = callback.getOptions().get(Options.REGEX_REPLACE_MEMBERS);
+				boolean reg = jremap.getOptions().get(Options.REGEX_REPLACE_MEMBERS);
 				String orig = mm.name.original;
 				String origCut = orig.substring(orig.lastIndexOf("/") + 1);
 				String value = StringUtil.getWordAtIndex(text.getCaretPosition(), text.getText(), true);
 				// Update rename history
-				callback.getHistory().onRename(mm, mm.name.getValue(), value);
+				jremap.getHistory().onRename(mm, mm.name.getValue(), value);
 				// Rename mapping
 				mm.name.setValue(value);
 				// Update text area.
@@ -76,7 +76,7 @@ public class JavaKeyListener implements KeyListener {
 					String valueCut = mm.name.getValue().substring(mm.name.getValue().lastIndexOf("/") + 1);
 					text.setText(text.getText().replaceAll("\\b(" + origCut + ")\\b", valueCut));
 				} else {
-					callback.onClassSelect(callback.getCurrentClass());
+					jremap.onClassSelect(jremap.getCurrentClass());
 				}
 				// TODO: Better positon reset
 				text.setCaretPosition(pos);

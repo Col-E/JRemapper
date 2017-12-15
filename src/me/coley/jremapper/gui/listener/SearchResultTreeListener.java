@@ -7,15 +7,15 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreeNode;
 
-import me.coley.jremapper.Program;
+import me.coley.jremapper.JRemapper;
 import me.coley.jremapper.gui.component.tree.SearchResultTreeNode;
 
 public class SearchResultTreeListener implements TreeSelectionListener, MouseListener {
-	private final Program callback;
+	private final JRemapper jremap;
 	private TreeNode lastNode;
 
-	public SearchResultTreeListener(Program callback) {
-		this.callback = callback;
+	public SearchResultTreeListener(JRemapper jremap) {
+		this.jremap = jremap;
 	}
 
 	@Override
@@ -31,12 +31,12 @@ public class SearchResultTreeListener implements TreeSelectionListener, MouseLis
 			/*
 			if (node instanceof MappingTreeNode) {
 				MappingTreeNode mtn = (MappingTreeNode) node;
-				callback.onClassSelect(mtn.getMapping());
+				jremap.onClassSelect(mtn.getMapping());
 			} else 
 			*/
 			if (node instanceof SearchResultTreeNode) {
 				SearchResultTreeNode srtn = (SearchResultTreeNode) node;
-				callback.onClassSelect(srtn.getMappingNode().getMapping());
+				jremap.onClassSelect(srtn.getMappingNode().getMapping());
 				// TODO: Find a way to accurately show the data, rather than just opening the class
 			}
 		}

@@ -8,7 +8,7 @@ import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
 
 import me.coley.bmf.mapping.AbstractMapping;
-import me.coley.jremapper.Program;
+import me.coley.jremapper.JRemapper;
 import me.coley.jremapper.gui.listener.JavaCaretListener;
 import me.coley.jremapper.gui.listener.JavaKeyListener;
 import me.coley.jremapper.gui.listener.JavaMouseListener;
@@ -29,8 +29,8 @@ public class JavaTextArea extends JPanel {
 	 */
 	private boolean parsing;
 
-	public JavaTextArea(Program callback) {
-		context = new Context(callback);
+	public JavaTextArea(JRemapper jremap) {
+		context = new Context(jremap);
 		//
 		textArea.setCaretPosition(0);
 		textArea.requestFocusInWindow();
@@ -43,9 +43,9 @@ public class JavaTextArea extends JPanel {
 		textArea.setComponentPopupMenu(null);
 		textArea.setPopupMenu(null);
 		//
-		caret = new JavaCaretListener(callback, this);
-		mouse = new JavaMouseListener(callback, this);
-		keys = new JavaKeyListener(callback, this);
+		caret = new JavaCaretListener(jremap, this);
+		mouse = new JavaMouseListener(jremap, this);
+		keys = new JavaKeyListener(jremap, this);
 		textArea.addCaretListener(caret);
 		textArea.addMouseListener(mouse);
 		textArea.addKeyListener(keys);

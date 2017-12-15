@@ -12,7 +12,7 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 
 import me.coley.bmf.ClassNode;
 import me.coley.bmf.util.Access;
-import me.coley.jremapper.Program;
+import me.coley.jremapper.JRemapper;
 
 @SuppressWarnings("serial")
 public class SearchRenderer extends DefaultTreeCellRenderer {
@@ -22,10 +22,10 @@ public class SearchRenderer extends DefaultTreeCellRenderer {
 	private static final Icon ICON_ENUM;
 	private static final Icon ICON_ANNOTATION;
 	private static final Icon ICON_RESULT;
-	private final Program callback;
+	private final JRemapper jremap;
 
-	public SearchRenderer(Program callback) {
-		this.callback = callback;
+	public SearchRenderer(JRemapper jremap) {
+		this.jremap = jremap;
 	}
 
 	@Override
@@ -44,7 +44,7 @@ public class SearchRenderer extends DefaultTreeCellRenderer {
 				} else {
 					// Get the classnode, determine icon by access
 					String className = mtNode.getMapping().name.original;
-					ClassNode cn = callback.getJarReader().getClassEntries().get(className);
+					ClassNode cn = jremap.getJarReader().getClassEntries().get(className);
 					int acc = cn.access;
 					if (Access.isInterface(acc)) {
 						setIcon(SearchRenderer.ICON_INTERFACE);

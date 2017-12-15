@@ -31,7 +31,8 @@ public class JavaTabs extends JTabbedPane {
 			super.addTab(title, component);
 			setSelectedIndex(index);
 		} else {
-			throw new RuntimeException("Component was not a supported type!");
+			super.addTab(title, component);
+			//throw new RuntimeException("Component was not a supported type!");
 		}
 	}
 

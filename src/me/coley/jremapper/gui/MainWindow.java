@@ -10,10 +10,10 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import me.coley.bmf.mapping.ClassMapping;
-import me.coley.jremapper.CFRSetting;
 import me.coley.jremapper.Options;
-import me.coley.jremapper.Program;
+import me.coley.jremapper.JRemapper;
 import me.coley.jremapper.History.RenameAction;
+import me.coley.jremapper.cfr.CFRSetting;
 import me.coley.jremapper.gui.action.*;
 import me.coley.jremapper.gui.component.JavaTabs;
 import me.coley.jremapper.gui.component.JavaTextArea;
@@ -25,7 +25,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
 public class MainWindow {
-	private final Program callback;
+	private final JRemapper jremap;
 	private final JFrame frame = new JFrame();
 	private FileTree pnlFileTree;
 	private SearchPanel pnlSearch;
@@ -35,8 +35,8 @@ public class MainWindow {
 	/**
 	 * Create the application.
 	 */
-	public MainWindow(Program callback) {
-		this.callback = callback;
+	public MainWindow(JRemapper jremap) {
+		this.jremap = jremap;
 	}
 
 	/**
@@ -69,11 +69,11 @@ public class MainWindow {
 		JMenu mnHistory = new JMenu("History");
 		// Create menu for opening/selecting the last few decompiled classes.
 		JMenu mnHistSelection = new JMenu("Selections");
-		callback.getHistory().registerSelectionUpdate(new Runnable() {
+		jremap.getHistory().registerSelectionUpdate(new Runnable() {
 			@Override
 			public void run() {
 				mnHistSelection.removeAll();
-				for (String title : callback.getHistory().getSelectedClasses()) {
+				for (String title : jremap.getHistory().getSelectedClasses()) {
 					JMenuItem mntmSel = new JMenuItem(title);
 					mntmSel.addActionListener(new ActionListener() {
 						@Override
@@ -84,9 +84,9 @@ public class MainWindow {
 								// renames
 								// This won't open renamed classes
 								// right now.
-								ClassMapping mc = callback.getJarReader().getMapping().getMapping(title);
+								ClassMapping mc = jremap.getJarReader().getMapping().getMapping(title);
 								if (mc != null) {
-									callback.onClassSelect(mc);
+									jremap.onClassSelect(mc);
 								}
 							}
 						}
@@ -99,11 +99,11 @@ public class MainWindow {
 		mnHistory.add(mnHistSelection);
 		// Create menu for undoing the last couple rename actions.
 		JMenu mnHistRename = new JMenu("Renames");
-		callback.getHistory().registerSelectionUpdate(new Runnable() {
+		jremap.getHistory().registerSelectionUpdate(new Runnable() {
 			@Override
 			public void run() {
 				mnHistRename.removeAll();
-				for (RenameAction rename : callback.getHistory().getRenameActions()) {
+				for (RenameAction rename : jremap.getHistory().getRenameActions()) {
 					String title = rename.getBefore() + " -> " + rename.getAfter();
 					JMenuItem mntmRen = new JMenuItem(title);
 
@@ -113,15 +113,15 @@ public class MainWindow {
 							rename.getMapping().name.setValue(rename.getBefore());
 							/*
 							 * if (rename.getMapping() instanceof ClassMapping)
-							 * { callback.updateTreePath(rename.
+							 * { jremap.updateTreePath(rename.
 							 * getMapping().name.original, rename.getBefore());
 							 * }
 							 */
-							callback.getHistory().onUndo(rename);
+							jremap.getHistory().onUndo(rename);
 							// TODO: This is a lazy fix, only the
 							// single class should need to be moved.
 							if (rename.getMapping() instanceof ClassMapping) {
-								callback.refreshTree();
+								jremap.refreshTree();
 							}
 						}
 					});
@@ -142,15 +142,15 @@ public class MainWindow {
 		JMenu mnMapCurrent = new JMenu("Current Class");
 		JMenuItem mntmRenameUnique = new JMenuItem("Rename-all uniquely");
 		JMenuItem mntmResetMembers = new JMenuItem("Reset members");
-		mntmRenameUnique.addActionListener(new ActionRenameCurrentMembers(callback));
-		mntmResetMembers.addActionListener(new ActionRenameReset(callback));
+		mntmRenameUnique.addActionListener(new ActionRenameCurrentMembers(jremap));
+		mntmResetMembers.addActionListener(new ActionRenameReset(jremap));
 		mnMapCurrent.add(mntmRenameUnique);
 		mnMapCurrent.add(mntmResetMembers);
 		mnMapping.add(mnMapCurrent);
 		// Automated tasks for all loaded classes
 		JMenu mnMapAll = new JMenu("All Classes");
 		JMenuItem mntmRenameUniqueAll = new JMenuItem("Rename-all: Simple");
-		mntmRenameUniqueAll.addActionListener(new ActionRenameClasses(callback));
+		mntmRenameUniqueAll.addActionListener(new ActionRenameClasses(jremap));
 		mnMapAll.add(mntmRenameUniqueAll);
 		mnMapping.add(mnMapAll);
 		// Add to menu bar.
@@ -163,16 +163,16 @@ public class MainWindow {
 		JMenu mnOpen = new JMenu("Open");
 		JMenuItem mntmOpenJar = new JMenuItem("Jar");
 		JMenuItem mntmOpenMap = new JMenuItem("Mappings");
-		mntmOpenJar.addActionListener(new ActionChooseFile(callback));
-		mntmOpenMap.addActionListener(new ActionLoadMapping(callback));
+		mntmOpenJar.addActionListener(new ActionChooseFile(jremap));
+		mntmOpenMap.addActionListener(new ActionLoadMapping(jremap));
 		mnOpen.add(mntmOpenJar);
 		mnOpen.add(mntmOpenMap);
 		// Save options
 		JMenu mnSave = new JMenu("Save As");
 		JMenuItem mntmSaveJar = new JMenuItem("Jar");
 		JMenuItem mntmSaveMap = new JMenuItem("Mapping");
-		mntmSaveMap.addActionListener(new ActionSaveAsMapping(callback));
-		mntmSaveJar.addActionListener(new ActionSaveAsJar(callback));
+		mntmSaveMap.addActionListener(new ActionSaveAsMapping(jremap));
+		mntmSaveJar.addActionListener(new ActionSaveAsJar(jremap));
 		mnSave.add(mntmSaveJar);
 		mnSave.add(mntmSaveMap);
 		// Add to menu bar.
@@ -185,14 +185,14 @@ public class MainWindow {
 		JMenu mnOptions = new JMenu("Options");
 		// Iterate program options, create a checkbox for each.
 		// TODO: Options for non-boolean options.
-		for (final String setting : callback.getOptions().getOptions().keySet()) {
-			boolean enabled = callback.getOptions().get(setting);
+		for (final String setting : jremap.getOptions().getOptions().keySet()) {
+			boolean enabled = jremap.getOptions().get(setting);
 			final JCheckBox chk = new JCheckBox(setting);
 			chk.setSelected(enabled);
 			chk.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					callback.getOptions().set(setting, chk.isSelected());
+					jremap.getOptions().set(setting, chk.isSelected());
 				}
 			});
 			mnOptions.add(chk);
@@ -226,11 +226,11 @@ public class MainWindow {
 	}
 
 	private void setupFileTree() {
-		pnlFileTree = new FileTree(callback);
+		pnlFileTree = new FileTree(jremap);
 	}
 
 	private void setupSearchPanel() {
-		pnlSearch = new SearchPanel(callback);
+		pnlSearch = new SearchPanel(jremap);
 	}
 
 	private void setupSourceTabs() {
@@ -244,7 +244,7 @@ public class MainWindow {
 					return;
 				}
 				String title = pnlJavaTabs.getTitleAt(i);
-				callback.getHistory().onSelectClass(title);
+				jremap.getHistory().onSelectClass(title);
 			}
 		});
 
@@ -289,12 +289,12 @@ public class MainWindow {
 		/// - If it does exist, update content and set it as the current tab.
 		JavaTextArea javaArea = pnlJavaTabs.getSourceArea(title);
 		if (javaArea == null) {
-			javaArea = new JavaTextArea(callback);
+			javaArea = new JavaTextArea(jremap);
 			javaArea.setText(text);
 			pnlJavaTabs.addTab(title, javaArea);
 		} else {
 			// Re-decompile if option for refreshing is active
-			if (callback.getOptions().get(Options.REFRESH_ON_SELECT)) {
+			if (jremap.getOptions().get(Options.REFRESH_ON_SELECT)) {
 				int caret = javaArea.getCaretPosition();
 				javaArea.setText(text);
 				javaArea.setCaretPosition(caret);

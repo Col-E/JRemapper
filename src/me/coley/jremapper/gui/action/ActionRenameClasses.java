@@ -11,27 +11,27 @@ import me.coley.bmf.type.PrimitiveType;
 import me.coley.bmf.type.Type;
 import me.coley.bmf.type.descriptors.MethodDescriptor;
 import me.coley.bmf.type.descriptors.VariableDescriptor;
-import me.coley.jremapper.Program;
+import me.coley.jremapper.JRemapper;
 import me.coley.jremapper.util.StringUtil;
 
 public class ActionRenameClasses implements ActionListener {
-	private final Program callback;
+	private final JRemapper jremap;
 	private final Map<String, Integer> nameCounter = new HashMap<String, Integer>();
 	private int classCounter, fieldCounter, methodCounter;
 
-	public ActionRenameClasses(Program callback) {
-		this.callback = callback;
+	public ActionRenameClasses(JRemapper jremap) {
+		this.jremap = jremap;
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		for (ClassMapping cm : callback.getJarReader().getMapping().getMappings().values()) {
+		for (ClassMapping cm : jremap.getJarReader().getMapping().getMappings().values()) {
 			if (cm.name.original.equals(cm.name.getValue())) {
 				String newName = genClassName(cm);
 				cm.name.setValue(newName);
 			}
 		}
-		for (ClassMapping cm : callback.getJarReader().getMapping().getMappings().values()) {
+		for (ClassMapping cm : jremap.getJarReader().getMapping().getMappings().values()) {
 			for (MemberMapping mm : cm.getMembers()) {
 				if (mm.name.original.contains("t>") || !mm.name.original.equals(mm.name.getValue())) {
 					continue;
@@ -43,11 +43,11 @@ public class ActionRenameClasses implements ActionListener {
 				}
 			}
 		}
-		callback.refreshTree();
+		jremap.refreshTree();
 	}
 
 	public String genClassName(ClassMapping cm) {
-		ClassMapping parent = callback.getJarReader().getMapping().getParent(cm);
+		ClassMapping parent = jremap.getJarReader().getMapping().getParent(cm);
 		if (parent != null) {
 			if (isValidClassName(parent.name.getValue())) {
 				String pnv = parent.name.getValue();

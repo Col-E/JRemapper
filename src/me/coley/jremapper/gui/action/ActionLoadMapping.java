@@ -5,21 +5,21 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JFileChooser;
 
-import me.coley.jremapper.Program;
+import me.coley.jremapper.JRemapper;
 
 public class ActionLoadMapping implements ActionListener {
-	private final Program callback;
+	private final JRemapper jremap;
 
-	public ActionLoadMapping(Program callback) {
-		this.callback = callback;
+	public ActionLoadMapping(JRemapper jremap) {
+		this.jremap = jremap;
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		JFileChooser chooser = callback.getFileChooser(null, null);
+		JFileChooser chooser = jremap.getFileChooser(null, null);
 		int val = chooser.showOpenDialog(null);
 		if (val == JFileChooser.APPROVE_OPTION) {
-			callback.onLoadMapping(chooser.getSelectedFile());
+			jremap.onLoadMapping(chooser.getSelectedFile());
 		}
 	}
 

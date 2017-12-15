@@ -8,16 +8,16 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreeNode;
 
-import me.coley.jremapper.Program;
+import me.coley.jremapper.JRemapper;
 import me.coley.jremapper.gui.component.tree.MappingTreeNode;
 
 public class FileSelectionListener implements TreeSelectionListener, MouseListener {
-	private final Program callback;
+	private final JRemapper jremap;
 	private TreeNode lastNode;
 	private JTree tree;
 
-	public FileSelectionListener(JTree tree, Program callback) {
-		this.callback = callback;
+	public FileSelectionListener(JTree tree, JRemapper jremap) {
+		this.jremap = jremap;
 		this.tree = tree;
 	}
 
@@ -33,7 +33,7 @@ public class FileSelectionListener implements TreeSelectionListener, MouseListen
 		if (node != null && node.isLeaf() && (node instanceof MappingTreeNode)) {
 			if (tree.getSelectionPath().getLastPathComponent().equals(node)) {
 				MappingTreeNode mtn = (MappingTreeNode) node;
-				callback.onClassSelect(mtn.getMapping());
+				jremap.onClassSelect(mtn.getMapping());
 			}
 		}
 	}

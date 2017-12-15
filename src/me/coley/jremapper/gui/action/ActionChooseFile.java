@@ -5,24 +5,24 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JFileChooser;
 
-import me.coley.jremapper.Program;
+import me.coley.jremapper.JRemapper;
 
 /**
  * Prompts a user to select a jar file.
  */
 public class ActionChooseFile implements ActionListener {
-	private final Program callback;
+	private final JRemapper jremap;
 
-	public ActionChooseFile(Program callback) {
-		this.callback = callback;
+	public ActionChooseFile(JRemapper jremap) {
+		this.jremap = jremap;
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		JFileChooser chooser = callback.getFileChooser();
+		JFileChooser chooser = jremap.getFileChooser();
 		int val = chooser.showOpenDialog(null);
 		if (val == JFileChooser.APPROVE_OPTION) {
-			callback.onFileSelect(chooser.getSelectedFile());
+			jremap.onFileSelect(chooser.getSelectedFile());
 		}
 	}
 

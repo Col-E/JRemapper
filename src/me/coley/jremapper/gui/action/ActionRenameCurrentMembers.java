@@ -5,26 +5,26 @@ import java.awt.event.ActionListener;
 
 import me.coley.bmf.mapping.ClassMapping;
 import me.coley.bmf.mapping.MemberMapping;
-import me.coley.jremapper.Program;
+import me.coley.jremapper.JRemapper;
 
 public class ActionRenameCurrentMembers implements ActionListener {
 
-	private Program callback;
+	private JRemapper jremap;
 
-	public ActionRenameCurrentMembers(Program callback) {
-		this.callback = callback;
+	public ActionRenameCurrentMembers(JRemapper jremap) {
+		this.jremap = jremap;
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		ClassMapping cm = callback.getCurrentClass();
+		ClassMapping cm = jremap.getCurrentClass();
 		if (cm != null) {
 			int i = 2;
 			for (MemberMapping mm : cm.getMembers()) {
 				mm.name.setValue(getName(i));
 				i *= 2;
 			}
-			callback.onClassSelect(cm);
+			jremap.onClassSelect(cm);
 		}
 	}
 

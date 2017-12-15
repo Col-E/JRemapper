@@ -5,24 +5,24 @@ import java.awt.event.ActionListener;
 
 import me.coley.bmf.mapping.ClassMapping;
 import me.coley.bmf.mapping.MemberMapping;
-import me.coley.jremapper.Program;
+import me.coley.jremapper.JRemapper;
 
 public class ActionRenameReset implements ActionListener {
 
-	private Program callback;
+	private JRemapper jremap;
 
-	public ActionRenameReset(Program callback) {
-		this.callback = callback;
+	public ActionRenameReset(JRemapper jremap) {
+		this.jremap = jremap;
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		ClassMapping cm = callback.getCurrentClass();
+		ClassMapping cm = jremap.getCurrentClass();
 		if (cm != null) {
 			for (MemberMapping mm : cm.getMembers()) {
 				mm.name.setValue(mm.name.original);
 			}
-			callback.onClassSelect(cm);
+			jremap.onClassSelect(cm);
 		}
 	}
 }

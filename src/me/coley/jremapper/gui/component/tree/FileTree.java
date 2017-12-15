@@ -12,20 +12,20 @@ import javax.swing.tree.DefaultTreeModel;
 import me.coley.bmf.JarReader;
 import me.coley.bmf.mapping.ClassMapping;
 import me.coley.bmf.util.StreamUtil;
-import me.coley.jremapper.Program;
+import me.coley.jremapper.JRemapper;
 import me.coley.jremapper.gui.listener.FileSelectionListener;
 
 @SuppressWarnings("serial")
 public class FileTree extends JPanel {
 	private final JTree tree = new JTree(new String[] { "Open a jar" });
 	private final JScrollPane scrollTree = new JScrollPane(tree);
-	private final Program callback;
+	private final JRemapper jremap;
 
-	public FileTree(Program program) {
-		this.callback = program;
+	public FileTree(JRemapper program) {
+		this.jremap = program;
 		//
 		try {
-			tree.setCellRenderer(new FileTreeRenderer(callback));
+			tree.setCellRenderer(new FileTreeRenderer(jremap));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -40,12 +40,12 @@ public class FileTree extends JPanel {
 	 * @param jar
 	 */
 	public void setup() {
-		JarReader read = callback.getJarReader();
+		JarReader read = jremap.getJarReader();
 		// Root node
 		String jarName = read.getFile().getName();
 		MappingTreeNode root = new MappingTreeNode(jarName, null);
 		DefaultTreeModel model = new DefaultTreeModel(root);
-		FileSelectionListener sel = new FileSelectionListener(tree, callback);
+		FileSelectionListener sel = new FileSelectionListener(tree, jremap);
 		tree.addTreeSelectionListener(sel);
 		tree.addMouseListener(sel);
 		tree.setModel(model);
@@ -141,12 +141,12 @@ public class FileTree extends JPanel {
 	}
 
 	public void refresh() {
-		JarReader read = callback.getJarReader();
+		JarReader read = jremap.getJarReader();
 		// Root node
 		String jarName = read.getFile().getName();
 		MappingTreeNode root = new MappingTreeNode(jarName, null);
 		DefaultTreeModel model = new DefaultTreeModel(root);
-		// FileSelectionListener sel = new FileSelectionListener(callback);
+		// FileSelectionListener sel = new FileSelectionListener(jremap);
 		// tree.addTreeSelectionListener(sel);
 		// tree.addMouseListener(sel);
 		tree.setModel(model);

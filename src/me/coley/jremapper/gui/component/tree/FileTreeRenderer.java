@@ -11,7 +11,7 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 
 import me.coley.bmf.ClassNode;
 import me.coley.bmf.util.Access;
-import me.coley.jremapper.Program;
+import me.coley.jremapper.JRemapper;
 
 /**
  * Slightly modified from Luyten's.
@@ -23,10 +23,10 @@ public class FileTreeRenderer extends DefaultTreeCellRenderer {
 	private static final Icon ICON_INTERFACE;
 	private static final Icon ICON_ENUM;
 	private static final Icon ICON_ANNOTATION;
-	private final Program callback;
+	private final JRemapper jremap;
 
-	public FileTreeRenderer(Program callback) {
-		this.callback = callback;
+	public FileTreeRenderer(JRemapper jremap) {
+		this.jremap = jremap;
 	}
 
 	@Override
@@ -48,7 +48,7 @@ public class FileTreeRenderer extends DefaultTreeCellRenderer {
 				} else {
 					// Get the classnode, determine icon by access
 					String className = mtNode.getMapping().name.original;
-					ClassNode cn = callback.getJarReader().getClassEntries().get(className);
+					ClassNode cn = jremap.getJarReader().getClassEntries().get(className);
 					int acc = cn.access;
 					if (Access.isInterface(acc)) {
 						setIcon(FileTreeRenderer.ICON_INTERFACE);

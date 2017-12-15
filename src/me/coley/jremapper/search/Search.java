@@ -20,7 +20,7 @@ import me.coley.bmf.opcode.Opcode;
 import me.coley.bmf.type.Type;
 import me.coley.bmf.util.ConstUtil;
 import me.coley.bmf.util.StreamUtil;
-import me.coley.jremapper.Program;
+import me.coley.jremapper.JRemapper;
 import me.coley.jremapper.gui.component.tree.MappingTreeNode;
 import me.coley.jremapper.gui.component.tree.SearchResultTreeNode;
 
@@ -33,10 +33,10 @@ public class Search {
 	public static final int CLASS_REFERENCE_METHODS = 202;
 	public static final int MEMBER_DEFINITION_NAME = 300;
 	public static final int MEMBER_DEFINITION_DESC = 301;
-	private final Program callback;
+	private final JRemapper jremap;
 
-	public Search(Program callback) {
-		this.callback = callback;
+	public Search(JRemapper jremap) {
+		this.jremap = jremap;
 	}
 
 	/**
@@ -51,7 +51,7 @@ public class Search {
 	@SuppressWarnings("rawtypes")
 	public DefaultMutableTreeNode searchUTF8(int mode, String text) {
 		DefaultMutableTreeNode root = new DefaultMutableTreeNode(text);
-		JarReader jar = callback.getJarReader();
+		JarReader jar = jremap.getJarReader();
 		// Sort at this stage rather than sorting the root later.
 		// Its not worth the trouble later on.
 		for (String name : StreamUtil.listOfSortedJavaNames(jar.getClassEntries().keySet())) {
@@ -91,7 +91,7 @@ public class Search {
 	@SuppressWarnings("rawtypes")
 	public DefaultMutableTreeNode searchClass(int mode, String text) {
 		DefaultMutableTreeNode root = new DefaultMutableTreeNode(text);
-		JarReader jar = callback.getJarReader();
+		JarReader jar = jremap.getJarReader();
 		// Sort at this stage rather than sorting the root later.
 		// Its not worth the trouble later on.
 		for (String name : StreamUtil.listOfSortedJavaNames(jar.getClassEntries().keySet())) {
@@ -142,7 +142,7 @@ public class Search {
 	 */
 	public DefaultMutableTreeNode searchMember(int mode, boolean methods, String text) {
 		DefaultMutableTreeNode root = new DefaultMutableTreeNode(text);
-		JarReader jar = callback.getJarReader();
+		JarReader jar = jremap.getJarReader();
 		// Sort at this stage rather than sorting the root later.
 		// Its not worth the trouble later on.
 		for (String name : StreamUtil.listOfSortedJavaNames(jar.getClassEntries().keySet())) {
@@ -181,7 +181,7 @@ public class Search {
 	 */
 	public DefaultMutableTreeNode searchMember(ClassMapping memberOwner, MemberMapping mm) {
 		DefaultMutableTreeNode root = new DefaultMutableTreeNode(mm.toString());
-		JarReader jar = callback.getJarReader();
+		JarReader jar = jremap.getJarReader();
 		boolean isMethod = mm.desc.original.startsWith("(");
 		// Sort at this stage rather than sorting the root later.
 		// Its not worth the trouble later on.
