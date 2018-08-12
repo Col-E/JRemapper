@@ -1,14 +1,20 @@
-.metadata/**
-.recommenders/**
-.settings/**
-bin/**
-*.class
-*.dtd
-*.sh
-*.bat
-*.jar
-*.zip
-.classpath
-.project
-**/meme/**
-mappings.txt
+#### DIRECTORIES
+# eclipse
+**/.metadata/**
+**/.recommenders/**
+**/.settings/**
+*.classpath
+*.project
+
+# intellij
+**/.idea/**
+*.iml
+
+# maven
+**/target/**
+/target/
+
+# other
+jrlog.txt
+/test/**
+
