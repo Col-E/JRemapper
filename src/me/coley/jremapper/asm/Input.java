@@ -135,7 +135,7 @@ public class Input {
 	
 	private void updateCurrent() {
 		if (CURRENT != null) {
-			history.reset();
+			CURRENT.history.reset();
 		}
 		CURRENT = this;
 	}
