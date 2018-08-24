@@ -12,7 +12,7 @@ import java.util.zip.ZipFile;
 
 import org.objectweb.asm.ClassReader;
 
-import me.coley.jremapper.History;
+import me.coley.jremapper.util.History;
 import me.coley.jremapper.util.Logging;
 import me.coley.jremapper.util.Streams;
 
