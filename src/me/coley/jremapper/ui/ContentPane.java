@@ -3,7 +3,6 @@ package me.coley.jremapper.ui;
 import javafx.scene.layout.BorderPane;
 import me.coley.event.Bus;
 import me.coley.event.Listener;
-import me.coley.jremapper.History;
 import me.coley.jremapper.asm.Input;
 import me.coley.jremapper.event.ClassOpenEvent;
 import me.coley.jremapper.event.OpenCodeEvent;
@@ -19,7 +18,7 @@ public class ContentPane extends BorderPane {
 	@Listener
 	public void onClassOpen(ClassOpenEvent event) {
 		try {
-			content(History.push(event.getPath()));
+			content(input.history.push(event.getPath()));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -43,7 +42,7 @@ public class ContentPane extends BorderPane {
 	@Listener
 	public void onInput(NewInputEvent event) {
 		input = event.get();
-		History.reset(input);
+		input.history.reset();
 	}
 
 }

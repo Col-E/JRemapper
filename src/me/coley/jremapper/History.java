@@ -14,15 +14,15 @@ import me.coley.jremapper.ui.CodePane;
  * @author Matt
  */
 public class History {
-	private static History INSTANCE;
 	private final Stack<CodePane> panes = new Stack<>();
 	private final Stack<MappingChangeEvent> applied = new Stack<>();
 	private final Stack<MappingChangeEvent> unapplied = new Stack<>();
-	private static boolean ignore;
-	private Input input;
+	private final Input input;
+	private boolean ignore;
 
-	private History(Input input) {
+	public History(Input input) {
 		this.input = input;
+		Bus.subscribe(this);
 	}
 
 	@Listener
@@ -33,56 +33,47 @@ public class History {
 		}
 	}
 
-	public static void undo() {
-		if (INSTANCE.applied.isEmpty()) {
+	public void undo() {
+		if (applied.isEmpty()) {
 			return;
 		}
-		MappingChangeEvent last = INSTANCE.applied.pop();
+		MappingChangeEvent last = applied.pop();
 		ignore = true;
 		last.getMapping().setCurrentName(last.getOldName());
 		ignore = false;
-		INSTANCE.unapplied.push(last);
-		INSTANCE.panes.peek().refreshCode();
+		unapplied.push(last);
+		panes.peek().refreshCode();
 	}
 
-	public static void redo() {
-		if (INSTANCE.unapplied.isEmpty()) {
+	public void redo() {
+		if (unapplied.isEmpty()) {
 			return;
 		}
-		MappingChangeEvent last = INSTANCE.unapplied.pop();
+		MappingChangeEvent last = unapplied.pop();
 		ignore = true;
 		last.getMapping().setCurrentName(last.getNewName());
 		ignore = false;
-		INSTANCE.applied.push(last);
-		INSTANCE.panes.peek().refreshCode();
+		applied.push(last);
+		panes.peek().refreshCode();
 	}
 
-	public static CodePane push(String path) {
-		return push(CodePane.open(INSTANCE.input, path));
+	public CodePane push(String path) {
+		return push(CodePane.open(input, path));
 	}
 
-	public static CodePane push(CodePane pane) {
-		INSTANCE.panes.push(pane);
+	public CodePane push(CodePane pane) {
+		panes.push(pane);
 		return pane;
 	}
 
-	public static CodePane pop() {
-		if (INSTANCE.panes.isEmpty()) {
+	public CodePane pop() {
+		if (panes.isEmpty()) {
 			return null;
 		}
-		return INSTANCE.panes.pop();
+		return panes.pop();
 	}
 
-	public static void reset(Input input) {
-		if (INSTANCE != null) {
-			INSTANCE.reset();
-
-		}
-		INSTANCE = new History(input);
-		Bus.subscribe(INSTANCE);
-	}
-
-	private void reset() {
+	public void reset() {
 		Bus.unsubscribe(this);
 		applied.clear();
 		unapplied.clear();

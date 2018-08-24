@@ -11,6 +11,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.objectweb.asm.ClassReader;
+
+import me.coley.jremapper.History;
 import me.coley.jremapper.util.Logging;
 import me.coley.jremapper.util.Streams;
 
@@ -20,9 +22,11 @@ import me.coley.jremapper.util.Streams;
  * @author Matt
  */
 public class Input {
+	private static Input CURRENT;
 	private final File jarFile;
 	public final Map<String, byte[]> rawNodeMap = new HashMap<>();
 	public final Map<String, byte[]> resourceMap = new HashMap<>();
+	public final History history = new History(this);
 
 	/**
 	 * Create JarFile content maps.
@@ -32,6 +36,7 @@ public class Input {
 	 *             Thrown if contents could not be read.
 	 */
 	public Input(File jarFile) throws IOException {
+		updateCurrent();
 		this.jarFile = jarFile;
 		readArchive();
 	}
@@ -126,5 +131,16 @@ public class Input {
 		} catch (Exception e) {
 			return Access.PUBLIC;
 		}
+	}
+	
+	private void updateCurrent() {
+		if (CURRENT != null) {
+			history.reset();
+		}
+		CURRENT = this;
+	}
+	
+	public static Input get() {
+		return CURRENT;
 	}
 }

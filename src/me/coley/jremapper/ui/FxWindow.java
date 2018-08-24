@@ -13,7 +13,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import me.coley.event.Bus;
-import me.coley.jremapper.History;
+import me.coley.jremapper.asm.Input;
 import me.coley.jremapper.event.LoadMapEvent;
 import me.coley.jremapper.event.NewInputEvent;
 import me.coley.jremapper.event.SaveJarEvent;
@@ -81,9 +81,9 @@ public class FxWindow extends Application {
 						Bus.post(new SaveJarEvent(selected));
 					}
 				} else if (bindUndo.match(event)) {
-					History.undo();
+					Input.get().history.undo();
 				} else if (bindRedo.match(event)) {
-					History.redo();
+					Input.get().history.redo();
 				}
 			}
 		});
