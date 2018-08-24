@@ -27,6 +27,7 @@ import javafx.util.Duration;
 import org.benf.cfr.reader.PluginRunner;
 import org.benf.cfr.reader.api.ClassFileSource;
 import org.benf.cfr.reader.bytecode.analysis.parse.utils.Pair;
+import org.benf.cfr.reader.state.DCCommonState;
 import org.controlsfx.control.HiddenSidesPane;
 import org.controlsfx.control.textfield.CustomTextField;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -43,7 +44,6 @@ import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 
 import me.coley.event.Bus;
-import me.coley.jremapper.History;
 import me.coley.jremapper.asm.Input;
 import me.coley.jremapper.event.OpenCodeEvent;
 import me.coley.jremapper.mapping.Mappings;
@@ -56,10 +56,12 @@ import me.coley.jremapper.util.*;
  * @author Matt
  */
 public class CodePane extends BorderPane {
-	private static final String[] KEYWORDS = new String[] { "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue",
-			"default", "do", "double", "else", "enum", "extends", "final", "finally", "float", "for", "goto", "if", "implements", "import", "instanceof", "int",
-			"interface", "long", "native", "new", "package", "private", "protected", "public", "return", "short", "static", "strictfp", "super", "switch", "synchronized",
-			"this", "throw", "throws", "transient", "try", "void", "volatile", "while" };
+	private static final String[] KEYWORDS = new String[] { "abstract", "assert", "boolean", "break", "byte", "case",
+			"catch", "char", "class", "const", "continue", "default", "do", "double", "else", "enum", "extends",
+			"final", "finally", "float", "for", "goto", "if", "implements", "import", "instanceof", "int", "interface",
+			"long", "native", "new", "package", "private", "protected", "public", "return", "short", "static",
+			"strictfp", "super", "switch", "synchronized", "this", "throw", "throws", "transient", "try", "void",
+			"volatile", "while" };
 	private static final String KEYWORD_PATTERN = "\\b(" + String.join("|", KEYWORDS) + ")\\b";
 	private static final String STRING_PATTERN = "\"([^\"\\\\]|\\\\.)*\"";
 	private static final String CONST_HEX_PATTERN = "(0[xX][0-9a-fA-F]+)+";
@@ -69,8 +71,9 @@ public class CodePane extends BorderPane {
 	private static final String COMMENT_MULTI_SINGLE_PATTERN = "/[*](.|\\R)+?\\*/";
 	private static final String COMMENT_MULTI_JAVADOC_PATTERN = "/[*]{2}(.|\\R)+?\\*/";
 	private static final String ANNOTATION_PATTERN = "\\B(@[\\w]+)\\b";
-	private static final Pattern PATTERN = Pattern.compile("(?<COMMENTDOC>" + COMMENT_MULTI_JAVADOC_PATTERN + ")" + "|(?<COMMENTMULTI>" + COMMENT_MULTI_SINGLE_PATTERN
-			+ ")" + "|(?<COMMENTLINE>" + COMMENT_SINGLE_PATTERN + ")" + "|(?<KEYWORD>" + KEYWORD_PATTERN + ")" + "|(?<STRING>" + STRING_PATTERN + ")" + "|(?<ANNOTATION>"
+	private static final Pattern PATTERN = Pattern.compile("(?<COMMENTDOC>" + COMMENT_MULTI_JAVADOC_PATTERN + ")"
+			+ "|(?<COMMENTMULTI>" + COMMENT_MULTI_SINGLE_PATTERN + ")" + "|(?<COMMENTLINE>" + COMMENT_SINGLE_PATTERN
+			+ ")" + "|(?<KEYWORD>" + KEYWORD_PATTERN + ")" + "|(?<STRING>" + STRING_PATTERN + ")" + "|(?<ANNOTATION>"
 			+ ANNOTATION_PATTERN + ")" + "|(?<CONSTPATTERN>" + CONST_PATTERN + ")");
 	private final CodeArea code = new CodeArea();
 	private final HiddenSidesPane pane = new HiddenSidesPane();
@@ -113,7 +116,7 @@ public class CodePane extends BorderPane {
 	private CodePane(Input input, String path) {
 		this.input = input;
 		this.path = path;
-		this.previous = History.pop();
+		this.previous = input.history.pop();
 		String decompile = decompile();
 		setupCode(decompile);
 		setupSearch();
@@ -163,19 +166,18 @@ public class CodePane extends BorderPane {
 					// jump to declaration selected
 					if (selectedDec instanceof CDec) {
 						CDec dec = (CDec) selectedDec;
-						CodePane pane = History.push(open(input, dec.getFullName()));
+						CodePane pane = input.history.push(open(input, dec.getFullName()));
 						Bus.post(new OpenCodeEvent(pane));
 					} else if (selectedDec instanceof MDec) {
 						CodePane pane = cp;
 						MDec dec = (MDec) selectedDec;
 						if (!dec.getOwner().equals(regions.getHost())) {
-							pane = History.push(open(input, dec.getOwner().getFullName()));
+							pane = input.history.push(open(input, dec.getOwner().getFullName()));
 							Bus.post(new OpenCodeEvent(pane));
 						}
 						try {
 							pane.selectMember(dec);
-						} catch (Exception e) {
-						}
+						} catch (Exception e) {}
 
 					}
 				} else if (bindGoBack.match(event)) {
@@ -422,7 +424,8 @@ public class CodePane extends BorderPane {
 	private String decompile() {
 		CFRResourceLookup lookupHelper = new CFRResourceLookup();
 		Map<String, String> options = CFROpts.toStringMap();
-		String decompilation = new PluginRunner(options, new CFRSourceImpl(lookupHelper)).getDecompilationFor(path);
+		CFRPluginRunner runner = new CFRPluginRunner(options, new CFRSourceImpl(lookupHelper));
+		String decompilation = runner.getDecompilationFor(path);
 		if (decompilation.startsWith("/")) {
 			decompilation = decompilation.substring(decompilation.indexOf("*/") + 3);
 		}
@@ -446,12 +449,10 @@ public class CodePane extends BorderPane {
 						public void run() {
 							try {
 								textField.requestFocus();
-							} catch (Exception e) {
-							}
+							} catch (Exception e) {}
 						}
 					});
-				} catch (Exception e) {
-				}
+				} catch (Exception e) {}
 			}
 		}.start();
 	}
@@ -492,12 +493,33 @@ public class CodePane extends BorderPane {
 	 *         matcher.
 	 */
 	private String getStyleClass(Matcher matcher) {
+		//@formatter:off
 		return matcher.group("STRING") != null ? "string"
-				: matcher.group("KEYWORD") != null ? "keyword"
-						: matcher.group("COMMENTDOC") != null ? "comment-javadoc"
-								: matcher.group("COMMENTMULTI") != null ? "comment-multi"
-										: matcher.group("COMMENTLINE") != null ? "comment-line"
-												: matcher.group("CONSTPATTERN") != null ? "const" : matcher.group("ANNOTATION") != null ? "annotation" : null;
+			: matcher.group("KEYWORD") != null ? "keyword"
+			: matcher.group("COMMENTDOC") != null ? "comment-javadoc"
+			: matcher.group("COMMENTMULTI") != null ? "comment-multi"
+			: matcher.group("COMMENTLINE") != null ? "comment-line"
+			: matcher.group("CONSTPATTERN") != null ? "const"
+			: matcher.group("ANNOTATION") != null ? "annotation" : null;
+		//@formatter:on
+	}
+
+	private static class CFRPluginRunner extends PluginRunner {
+
+		public CFRPluginRunner(Map<String, String> options, CFRSourceImpl src) {
+			super(options, src);
+		}
+
+		@SuppressWarnings("unused")
+		public DCCommonState getState() {
+			try {
+				return (DCCommonState) PluginRunner.class.getDeclaredField("dcCommonState").get(this);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return null;
+		}
+
 	}
 
 	private static class CFRSourceImpl implements ClassFileSource {
@@ -511,8 +533,7 @@ public class CodePane extends BorderPane {
 		}
 
 		@Override
-		public void informAnalysisRelativePathDetail(String s, String s1) {
-		}
+		public void informAnalysisRelativePathDetail(String s, String s1) {}
 
 		@Override
 		public Collection<String> addJar(String s) {
