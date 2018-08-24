@@ -9,7 +9,7 @@ import me.coley.jremapper.event.MappingChangeEvent;
 import me.coley.jremapper.ui.CodePane;
 
 /**
- * This is a really poorly made history manager. It works.
+ * Simple history manager, keeps track of renames.
  * 
  * @author Matt
  */

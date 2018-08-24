@@ -12,14 +12,18 @@ public class RemapperImpl extends SimpleRemapper {
 	private RemapperImpl(Map<String, String> mapping) {
 		super(mapping);
 	}
-	
+
+	/**
+	 * @return Instance of the mapper, generated using current mappings.
+	 */
 	public static RemapperImpl create() {
 		Map<String, String> mapping = new HashMap<>();
 		Mappings.INSTANCE.getMappings().forEach(cm -> {
 			mapping.put(cm.getOriginalName(), cm.getCurrentName());
 			cm.getMembers().forEach(mm -> {
 				if (mm.isMethod()) {
-					mapping.put(cm.getOriginalName() + "." + mm.getOriginalName() + mm.getOriginalDesc(), mm.getCurrentName());
+					mapping.put(cm.getOriginalName() + "." + mm.getOriginalName() + mm.getOriginalDesc(),
+							mm.getCurrentName());
 				} else {
 					mapping.put(cm.getOriginalName() + "." + mm.getOriginalName(), mm.getCurrentName());
 				}

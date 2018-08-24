@@ -56,8 +56,7 @@ public class Input {
 			while (entries.hasMoreElements()) {
 				ZipEntry entry = entries.nextElement();
 				// skip directories
-				if (entry.isDirectory())
-					continue;
+				if (entry.isDirectory()) continue;
 				try (InputStream is = file.getInputStream(entry)) {
 					// add as class, or resource if not a class file.
 					String name = entry.getName();
@@ -113,33 +112,59 @@ public class Input {
 		}
 	}
 
+	/**
+	 * @param name
+	 *            Internal class name.
+	 * @return Class bytecode.
+	 */
 	public byte[] getRawClass(String name) {
 		return rawNodeMap.get(name);
 	}
 
+	/**
+	 * 
+	 * @param name
+	 *            Internal class name.
+	 * @return {@code true} if class by the given name exists in the input.
+	 */
 	public boolean hasRawClass(String name) {
 		return getRawClass(name) != null;
 	}
 
+	/**
+	 * @return Set of internal class names.
+	 */
 	public Set<String> names() {
 		return rawNodeMap.keySet();
 	}
 
-	public int getClassAccess(String item) {
+	/**
+	 * @param name
+	 *            Internal class name.
+	 * @return Class access modifiers.
+	 */
+	public int getClassAccess(String name) {
 		try {
-			return new ClassReader(getRawClass(item)).getAccess();
+			return new ClassReader(getRawClass(name)).getAccess();
 		} catch (Exception e) {
 			return Access.PUBLIC;
 		}
 	}
-	
+
+	/**
+	 * Update the static reference to this Input instance, unsubscribe the
+	 * existing/old reference from events.
+	 */
 	private void updateCurrent() {
 		if (CURRENT != null) {
 			CURRENT.history.reset();
 		}
 		CURRENT = this;
 	}
-	
+
+	/**
+	 * @return Static reference to the current Input instance.
+	 */
 	public static Input get() {
 		return CURRENT;
 	}

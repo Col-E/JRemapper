@@ -30,7 +30,16 @@ import me.coley.jremapper.event.NewInputEvent;
 import me.coley.jremapper.util.Files;
 import me.coley.jremapper.util.Logging;
 
+/**
+ * Mapping manager.
+ * 
+ * @author Matt
+ */
 public enum Mappings {
+	/**
+	 * Singleton access is much less of a hassle in this case. Events keep
+	 * everything up-to-date.
+	 */
 	INSTANCE;
 	/**
 	 * Map of internal class names, to their class mappings.
@@ -62,7 +71,8 @@ public enum Mappings {
 	 * @return Mapping wrapper for the class.
 	 */
 	public CMap getClassReverseMapping(String currentName) {
-		Optional<CMap> optMap = mappings.values().stream().filter(cm -> cm.getCurrentName().equals(currentName)).findFirst();
+		Optional<CMap> optMap = mappings.values().stream().filter(cm -> cm.getCurrentName().equals(currentName))
+				.findFirst();
 		if (optMap.isPresent()) {
 			return optMap.get();
 		}
@@ -129,11 +139,13 @@ public enum Mappings {
 				private CMap cm;
 
 				@Override
-				public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+				public void visit(int version, int access, String name, String signature, String superName,
+						String[] interfaces) {
 					mappings.put(name, cm = new CMap(name));
 				}
 
-				public void visitInnerClass(final String name, final String outerName, final String innerName, final int access) {
+				public void visitInnerClass(final String name, final String outerName, final String innerName,
+						final int access) {
 					if (cm.getOriginalName().endsWith(name)) {
 						return;
 					}
@@ -143,13 +155,15 @@ public enum Mappings {
 				}
 
 				@Override
-				public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
+				public FieldVisitor visitField(int access, String name, String descriptor, String signature,
+						Object value) {
 					cm.addMember(name, descriptor);
 					return null;
 				}
 
 				@Override
-				public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+				public MethodVisitor visitMethod(int access, String name, String descriptor, String signature,
+						String[] exceptions) {
 					cm.addMember(name, descriptor);
 					return null;
 				}
@@ -171,8 +185,7 @@ public enum Mappings {
 		Bus.subscribe(this);
 	}
 
-	public void init() {
-	}
+	public void init() {}
 
 	public void loadMapping(File file) {
 		try {

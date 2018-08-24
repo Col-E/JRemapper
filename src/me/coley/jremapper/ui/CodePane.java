@@ -127,12 +127,21 @@ public class CodePane extends BorderPane {
 		return new CodePane(input, currentPath);
 	}
 
+	/**
+	 * Set the properties of the {@link #code CodeArea}.
+	 * 
+	 * @param decompile
+	 *            Decompiled java code.
+	 */
 	private void setupCode(String decompile) {
+		// Only allow navigation.
 		code.setEditable(false);
 		code.setShowCaret(CaretVisibility.ON);
+		// Regenerate styles when the text is updated.
 		code.richChanges().filter(ch -> !ch.getInserted().equals(ch.getRemoved())).subscribe(change -> {
 			updateStyleAndRegions();
 		});
+		// Update selected classes/members when the caret moves.
 		code.caretPositionProperty().addListener((obs, old, cur) -> {
 			if (regions == null) {
 				return;
@@ -142,23 +151,24 @@ public class CodePane extends BorderPane {
 			int column = pos.getMinor() + 1;
 			CDec c = regions.getClassFromPosition(line, column);
 			if (c != null) {
-				updatePos(pos);
-				updateInfo(c);
+				this.pos = pos;
+				updateSelection(c);
 				return;
 			}
 			MDec m = regions.getMemberFromPosition(line, column);
 			if (m != null) {
-				updatePos(pos);
-				updateInfo(m);
+				this.pos = pos;
+				updateSelection(m);
 				return;
 			}
-			updateInfo();
+			resetSelection();
 		});
+		// Setup code-lines.
 		code.setParagraphGraphicFactory(LineNumberFactory.get(code));
-		// n, s, e, z, y
+		// Setup keybind operations.
+		final CodePane cp = this;
 		KeyCombination bindOpenDec = new KeyCodeCombination(KeyCode.N);
 		KeyCombination bindGoBack = new KeyCodeCombination(KeyCode.BACK_SPACE);
-		final CodePane cp = this;
 		code.addEventHandler(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {
 			@Override
 			public void handle(KeyEvent event) {
@@ -191,12 +201,11 @@ public class CodePane extends BorderPane {
 		refreshCode();
 	}
 
-	private void updatePos(Position pos) {
-		this.pos = pos;
-	}
-
+	/**
+	 * Setup the search-bar.
+	 */
 	private void setupSearch() {
-		// Main panel, has hidden top-node for search bar.
+		// Main panel, has hidden bottom-node for search bar.
 		search.setLeft(new ImageView(Icons.FIND));
 		search.addEventHandler(KeyEvent.KEY_PRESSED, (KeyEvent e) -> {
 			if (KeyCode.ESCAPE == e.getCode()) {
@@ -233,8 +242,13 @@ public class CodePane extends BorderPane {
 				}
 			}
 		});
+		// Place at bottom
+		pane.setBottom(search);
 	}
 
+	/**
+	 * Setup everything else that isn't the code-area.
+	 */
 	private void setupTheRest() {
 		info.setPrefHeight(95);
 		info.getStyleClass().add("infopane");
@@ -246,11 +260,16 @@ public class CodePane extends BorderPane {
 		setTop(info);
 		pane.animationDurationProperty().setValue(Duration.millis(50));
 		pane.setContent(new VirtualizedScrollPane<>(code));
-		pane.setBottom(search);
 		setCenter(pane);
 	}
 
-	private void updateInfo(CDec c) {
+	/**
+	 * Update the current selected class.
+	 * 
+	 * @param c
+	 *            The newly selected class.
+	 */
+	private void updateSelection(CDec c) {
 		selectedDec = c;
 		info.getChildren().clear();
 		info.add(new Label("Class name"), 0, 0);
@@ -267,13 +286,19 @@ public class CodePane extends BorderPane {
 				pass = -2;
 				c.map().setCurrentName(name.getText());
 				refreshCode();
-				updateInfo();
+				resetSelection();
 				updateStyleAndRegions();
 			}
 		});
 	}
 
-	private void updateInfo(MDec m) {
+	/**
+	 * Update the current selected member.
+	 * 
+	 * @param m
+	 *            The newly selected member.
+	 */
+	private void updateSelection(MDec m) {
 		selectedDec = m;
 		CDec c = m.getOwner();
 		info.getChildren().clear();
@@ -292,7 +317,7 @@ public class CodePane extends BorderPane {
 				pass = -2;
 				c.map().setCurrentName(owner.getText());
 				refreshCode();
-				updateInfo();
+				resetSelection();
 				updateStyleAndRegions();
 			}
 		});
@@ -315,18 +340,24 @@ public class CodePane extends BorderPane {
 			if (KeyCode.ENTER == e.getCode()) {
 				m.map().setCurrentName(name.getText());
 				refreshCode();
-				updateInfo();
+				resetSelection();
 				updateStyleAndRegions();
 			}
 		});
 
 	}
 
-	private void updateInfo() {
+	/**
+	 * Reset selected class / member.
+	 */
+	private void resetSelection() {
 		selectedDec = null;
 		info.getChildren().clear();
 	}
 
+	/**
+	 * Regenerate styles for the current code-area text.
+	 */
 	private void updateStyleAndRegions() {
 		// This event gets fired twice, this prevents multiple executions.
 		// This may look redundant, but if you don't believe me, fiddle with it.
@@ -339,6 +370,9 @@ public class CodePane extends BorderPane {
 		}
 	}
 
+	/**
+	 * Refresh the decompiled code. This will apply mapping changes.
+	 */
 	public void refreshCode() {
 		// The text is set this way so that the change listener can run.
 		code.clear();
@@ -398,6 +432,12 @@ public class CodePane extends BorderPane {
 		code.requestFocus();
 	}
 
+	/**
+	 * Generate member regions for the given text.
+	 * 
+	 * @param decompile
+	 *            Decompiled java code.
+	 */
 	private void setupRegions(String decompile) {
 		ParserConfiguration configuration = new ParserConfiguration();
 		JavaParser parser = new JavaParser(configuration);
@@ -438,6 +478,12 @@ public class CodePane extends BorderPane {
 		return decompilation;
 	}
 
+	/**
+	 * A very ugly way of focusing on some text... Focusing is odd.
+	 * 
+	 * @param textField
+	 *            Textfield to focus on.
+	 */
 	private void uglyFocus(CustomTextField textField) {
 		new Thread() {
 			@Override
@@ -504,6 +550,13 @@ public class CodePane extends BorderPane {
 		//@formatter:on
 	}
 
+	/**
+	 * Extension of CFR's front-end. <br>
+	 * Uses reflection to expose internal components. Currently unused but may be
+	 * useful later.
+	 * 
+	 * @author Matt
+	 */
 	private static class CFRPluginRunner extends PluginRunner {
 
 		public CFRPluginRunner(Map<String, String> options, CFRSourceImpl src) {
@@ -522,6 +575,12 @@ public class CodePane extends BorderPane {
 
 	}
 
+	/**
+	 * Extension of CFR's front-end for looking up resources. Successful lookups
+	 * allow more accurate decompilations.
+	 * 
+	 * @author Matt
+	 */
 	private static class CFRSourceImpl implements ClassFileSource {
 		/**
 		 * Lookup assister for inner classes and other references.
