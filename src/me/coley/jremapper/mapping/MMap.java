@@ -19,7 +19,11 @@ public class MMap extends AbstractMapping {
 	@Override
 	public void setCurrentName(String currentName) {
 		String past = getCurrentName();
-		Hierarchy.INSTANCE.onMemberRename(this, past, currentName);
+		if (isMethod()) {
+			Hierarchy.INSTANCE.onMemberRename(this, past, currentName);
+		} else {
+			setCurrentNameNoHierarchy(currentName);
+		}
 	}
 	
 	public void setCurrentNameNoHierarchy(String currentName) {

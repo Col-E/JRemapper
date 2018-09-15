@@ -4,6 +4,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import javafx.application.Platform;
+
 public class Threads {
 	public static ExecutorService pool(int maxSize) {
 		return Executors.newFixedThreadPool(maxSize);
@@ -38,7 +40,7 @@ public class Threads {
 	}
 
 	public static void runFx(Runnable r) {
-		Threads.runFx(r);
+		Platform.runLater(r);
 	}
 
 	public static void runLaterFx(int delay, Runnable r) {
