@@ -1,16 +1,19 @@
 package me.coley.jremapper.asm;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.tree.ClassNode;
 
 import me.coley.jremapper.util.History;
 import me.coley.jremapper.util.Logging;
@@ -149,6 +152,22 @@ public class Input {
 		} catch (Exception e) {
 			return Access.PUBLIC;
 		}
+	}
+
+	/**
+	 * @return Map of classes as tree-api representations.
+	 * @throws IOException
+	 */
+	public Map<String, ClassNode> genNodes() throws IOException {
+		Map<String, ClassNode> m = new HashMap<>();
+		for (Entry<String, byte[]> e : rawNodeMap.entrySet()) {
+			byte[] bs = e.getValue();
+			ClassReader cr = new ClassReader(new ByteArrayInputStream(bs));
+			ClassNode cn = new ClassNode();
+			cr.accept(cn, ClassReader.SKIP_CODE);
+			m.put(e.getKey(), cn);
+		}
+		return m;
 	}
 
 	/**

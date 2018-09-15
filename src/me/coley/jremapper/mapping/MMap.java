@@ -5,12 +5,27 @@ public class MMap extends AbstractMapping {
 	 * Original member descriptor.
 	 */
 	private final String originalDesc;
+	/**
+	 * Mapping of class that holds this member.
+	 */
+	private final CMap owner;
 
-	public MMap(String originalName, String originalDesc) {
+	public MMap(CMap owner, String originalName, String originalDesc) {
 		super(originalName);
+		this.owner = owner;
 		this.originalDesc = originalDesc;
 	}
 
+	@Override
+	public void setCurrentName(String currentName) {
+		String past = getCurrentName();
+		Hierarchy.INSTANCE.onMemberRename(this, past, currentName);
+	}
+	
+	public void setCurrentNameNoHierarchy(String currentName) {
+		super.setCurrentName(currentName);
+	}
+	
 	/**
 	 * @return Original member type descriptor.
 	 */
@@ -28,5 +43,9 @@ public class MMap extends AbstractMapping {
 
 	public boolean isMethod() {
 		return originalDesc.contains("(");
+	}
+	
+	public CMap getOwner() {
+		return owner;
 	}
 }

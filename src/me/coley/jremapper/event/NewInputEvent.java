@@ -3,11 +3,11 @@ package me.coley.jremapper.event;
 import java.io.File;
 import java.io.IOException;
 
-import javafx.application.Platform;
 import me.coley.event.Bus;
 import me.coley.event.Event;
 import me.coley.jremapper.asm.Input;
 import me.coley.jremapper.util.Logging;
+import me.coley.jremapper.util.Threads;
 
 /**
  * Event for when a new input is loaded.
@@ -36,7 +36,7 @@ public class NewInputEvent extends Event {
 	 *            File to load.
 	 */
 	public static void call(File file) {
-		Platform.runLater(() -> {
+		Threads.runFx(() -> {
 			try {
 				Bus.post(new NewInputEvent(file));
 			} catch (Exception e) {

@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.geometry.Side;
 import javafx.scene.control.Label;
@@ -379,16 +378,18 @@ public class CodePane extends BorderPane {
 		code.appendText(decompile());
 		// Dont allow undo to remove the initial text.
 		code.getUndoManager().forgetHistory();
-		Platform.runLater(() -> {
+		Threads.runFx(() -> {
 			// set position
-			if (pos != null) {
-				int offset = pos.toOffset();
-				code.moveTo(offset);
-				code.requestFollowCaret();
-			} else {
-				code.moveTo(0);
-				code.requestFollowCaret();
-			}
+			try {
+				if (pos != null) {
+					int offset = pos.toOffset();
+					code.moveTo(offset);
+					code.requestFollowCaret();
+					return;
+				}
+			} catch (Exception e) {}
+			code.moveTo(0);
+			code.requestFollowCaret();
 			onShow();
 		});
 	}
@@ -406,7 +407,7 @@ public class CodePane extends BorderPane {
 				int column = md.getName().getRange().get().begin.column;
 				MDec decMD = regions.getMemberFromPosition(line, column);
 				if (decMD != null && dec.toString().equals(decMD.toString())) {
-					Platform.runLater(() -> {
+					Threads.runFx(() -> {
 						code.moveTo(line - 1, column - 1);
 						code.requestFollowCaret();
 					});
@@ -419,7 +420,7 @@ public class CodePane extends BorderPane {
 				int column = md.getVariable(0).getName().getRange().get().begin.column;
 				MDec decMD = regions.getMemberFromPosition(line, column);
 				if (decMD != null && dec.toString().equals(decMD.toString())) {
-					Platform.runLater(() -> {
+					Threads.runFx(() -> {
 						code.moveTo(line - 1, column - 1);
 						code.requestFollowCaret();
 					});
@@ -490,7 +491,7 @@ public class CodePane extends BorderPane {
 			public void run() {
 				try {
 					Thread.sleep(500);
-					Platform.runLater(new Runnable() {
+					Threads.runFx(new Runnable() {
 						@Override
 						public void run() {
 							try {

@@ -14,7 +14,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import com.eclipsesource.json.JsonValue;
 import com.eclipsesource.json.WriterConfig;
-import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.TreeCell;
@@ -34,6 +33,7 @@ import me.coley.jremapper.mapping.CMap;
 import me.coley.jremapper.mapping.Mappings;
 import me.coley.jremapper.util.Icons;
 import me.coley.jremapper.util.Logging;
+import me.coley.jremapper.util.Threads;
 
 /**
  * Pane displaying file-tree of loaded classes.
@@ -110,7 +110,7 @@ public class FilePane extends BorderPane {
 			}
 		});
 		Bus.subscribe(this);
-		Platform.runLater(() -> tree.requestFocus());
+		Threads.runFx(() -> tree.requestFocus());
 	}
 
 	/**

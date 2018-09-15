@@ -29,7 +29,7 @@ public class CMap extends AbstractMapping {
 
 	public void addMember(String name, String desc) {
 		String key = key(name, desc);
-		members.put(key, new MMap(name, desc));
+		members.put(key, new MMap(this, name, desc));
 	}
 
 	private String key(String name, String desc) {
@@ -43,6 +43,7 @@ public class CMap extends AbstractMapping {
 	@Override
 	public void setCurrentName(String currentName) {
 		String past = getCurrentName();
+		Hierarchy.INSTANCE.onClassRename(this, past, currentName);
 		super.setCurrentName(currentName);
 		for (CMap inner : inners) {
 			String ic = inner.getCurrentName();

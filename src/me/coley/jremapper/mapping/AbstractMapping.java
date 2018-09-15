@@ -1,8 +1,6 @@
 package me.coley.jremapper.mapping;
 
 import java.util.Objects;
-import me.coley.event.Bus;
-import me.coley.jremapper.event.MappingChangeEvent;
 
 public abstract class AbstractMapping {
 	/**
@@ -37,7 +35,6 @@ public abstract class AbstractMapping {
 	 *            New name to set.
 	 */
 	public void setCurrentName(String currentName) {
-		Bus.post(new MappingChangeEvent(this, currentName));
 		this.currentName = currentName;
 	}
 
