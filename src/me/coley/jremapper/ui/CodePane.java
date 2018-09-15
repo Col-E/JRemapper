@@ -8,8 +8,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javafx.event.EventHandler;
 import javafx.geometry.Side;
 import javafx.scene.control.Label;
@@ -23,6 +21,9 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.util.Duration;
+import jregex.Matcher;
+import jregex.Pattern;
+
 import org.benf.cfr.reader.PluginRunner;
 import org.benf.cfr.reader.api.ClassFileSource;
 import org.benf.cfr.reader.bytecode.analysis.parse.utils.Pair;
@@ -67,13 +68,17 @@ public class CodePane extends BorderPane {
 	private static final String CONST_VAL_PATTERN = "(\\b([\\d._]*[\\d])\\b)+|(true|false|null)";
 	private static final String CONST_PATTERN = CONST_HEX_PATTERN + "|" + CONST_VAL_PATTERN;
 	private static final String COMMENT_SINGLE_PATTERN = "//[^\n]*";
-	private static final String COMMENT_MULTI_SINGLE_PATTERN = "/[*](.|\\R)+?\\*/";
-	private static final String COMMENT_MULTI_JAVADOC_PATTERN = "/[*]{2}(.|\\R)+?\\*/";
+	private static final String COMMENT_MULTI_SINGLE_PATTERN = "/[*](.|\n|\r)+?\\*/";
+	private static final String COMMENT_MULTI_JAVADOC_PATTERN = "/[*]{2}(.|\n|\r)+?\\*/";
 	private static final String ANNOTATION_PATTERN = "\\B(@[\\w]+)\\b";
-	private static final Pattern PATTERN = Pattern.compile("(?<COMMENTDOC>" + COMMENT_MULTI_JAVADOC_PATTERN + ")"
-			+ "|(?<COMMENTMULTI>" + COMMENT_MULTI_SINGLE_PATTERN + ")" + "|(?<COMMENTLINE>" + COMMENT_SINGLE_PATTERN
-			+ ")" + "|(?<KEYWORD>" + KEYWORD_PATTERN + ")" + "|(?<STRING>" + STRING_PATTERN + ")" + "|(?<ANNOTATION>"
-			+ ANNOTATION_PATTERN + ")" + "|(?<CONSTPATTERN>" + CONST_PATTERN + ")");
+	private static final Pattern PATTERN = new Pattern(
+			 "({COMMENTDOC}" + COMMENT_MULTI_JAVADOC_PATTERN + ")" + 
+			"|({COMMENTMULTI}" + COMMENT_MULTI_SINGLE_PATTERN + ")" + 
+			"|({COMMENTLINE}" + COMMENT_SINGLE_PATTERN + ")" + 
+			"|({KEYWORD}" + KEYWORD_PATTERN + ")" + 
+			"|({STRING}" + STRING_PATTERN + ")" + 
+			"|({ANNOTATION}" + ANNOTATION_PATTERN + ")" + 
+			"|({CONSTPATTERN}" + CONST_PATTERN + ")");
 	private final CodeArea code = new CodeArea();
 	private final HiddenSidesPane pane = new HiddenSidesPane();
 	private final CustomTextField search = new CustomTextField();
@@ -476,6 +481,8 @@ public class CodePane extends BorderPane {
 		decompilation = decompilation.replace("/* enum */ ", "");
 		// and some extra hacky bullshit JavaParser doesn't like
 		decompilation = decompilation.replace(".$SwitchMap$", "");
+		// <clinit> with modifiers
+		decompilation = decompilation.replace("public static {", "static {");
 		return decompilation;
 	}
 

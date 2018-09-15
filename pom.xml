@@ -64,6 +64,12 @@
 			<artifactId>minimal-json</artifactId>
 			<version>0.9.5</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/net.sourceforge.jregex/jregex -->
+		<dependency>
+ 		   <groupId>net.sourceforge.jregex</groupId>
+ 		   <artifactId>jregex</artifactId>
+  		  <version>1.2_01</version>
+		</dependency>
 		<!-- Local, see: http://www.benf.org/other/cfr/faq.html for why -->
 		<dependency>
 			<groupId>org.benf</groupId>
