@@ -1,15 +1,9 @@
 package me.coley.jremapper.mapping;
 
 import java.lang.reflect.Method;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
-import java.util.Objects;
-import java.util.Set;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -325,116 +319,21 @@ public enum Hierarchy {
 		}
 		return type;
 	}
+	
+	/**
+	 * @param name
+	 *            Internal name.
+	 * @return Vertex of class.
+	 */
+	public CVert getVertex(String name) {
+		return classes.get(name);
+	}
 
 	/**
 	 * @return Content of hierarchy loaded.
 	 */
 	public static LoadStatus getStatus() {
 		return INSTANCE.status;
-	}
-
-	/**
-	 * Class Vertex. Edges denote parent/child relations.
-	 * 
-	 * @author Matt
-	 */
-	class CVert {
-		final Set<String> externalParents = new HashSet<>();
-		final Set<CVert> parents = new HashSet<>();
-		final Set<CVert> children = new HashSet<>();
-		ClassNode data;
-
-		CVert(ClassNode data) {
-			this.data = data;
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hashCode(data.name);
-		}
-
-		@Override
-		public String toString() {
-			return data.name;
-		}
-	}
-
-	/**
-	 * Method-Group. For some method defined by a NameType, hold the set of
-	 * classes that define that method.
-	 * 
-	 * @author Matt
-	 */
-	class MGroup {
-		final NameType type;
-		final Set<CVert> definers = new HashSet<>();
-		boolean locked;
-
-		MGroup(NameType type) {
-			this.type = type.copy();
-		}
-
-		public void setName(String newName) {
-			if (locked) {
-				throw new RuntimeException("Cannot rename a locked method-group!");
-			}
-			for (CVert c : definers) {
-				CMap m = Mappings.INSTANCE.getClassMapping(c.data.name);
-				if (m == null) {
-					continue;
-				}
-				MMap mm = m.lookup(type.name, type.desc);
-				if (mm == null) {
-					continue;
-				}
-				Bus.post(new MappingChangeEvent(mm, newName));
-				mm.setCurrentNameNoHierarchy(newName);
-			}
-		}
-	}
-
-	/**
-	 * Name + Descriptor wrapper.
-	 * 
-	 * @author Matt
-	 */
-	class NameType {
-		private final String desc;
-		private String name;
-		private String def;
-
-		NameType(String name, String desc) {
-			this.name = name;
-			this.desc = desc;
-			this.def = name + desc;
-		}
-
-		public NameType copy() {
-			return new NameType(name, desc);
-		}
-
-		public void setName(String newName) {
-			this.name = newName;
-			this.def = name + desc;
-		}
-
-		@Override
-		public boolean equals(Object other) {
-			if (other instanceof NameType && other.toString().equals(toString())) {
-				return true;
-			}
-			return false;
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hashCode(def);
-		}
-
-		@Override
-		public String toString() {
-			return def;
-		}
 	}
 
 	/**

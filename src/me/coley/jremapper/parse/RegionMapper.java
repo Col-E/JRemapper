@@ -16,6 +16,8 @@ import com.github.javaparser.ast.type.*;
 
 import me.coley.jremapper.asm.Input;
 import me.coley.jremapper.mapping.CMap;
+import me.coley.jremapper.mapping.CVert;
+import me.coley.jremapper.mapping.Hierarchy;
 import me.coley.jremapper.mapping.MMap;
 import me.coley.jremapper.mapping.Mappings;
 import me.coley.jremapper.util.Logging;
@@ -23,6 +25,13 @@ import me.coley.jremapper.util.Logging;
 /**
  * Allows linking regions of text do different mappings using the JavaParser
  * library.
+ * 
+ * For reference:		
+ * <ul>		
+ * <li>Quantified name: Full name of a class, such as		
+ * <i>com.example.MyType</i></li>		
+ * <li>Simple name: Short-hand name of a class, such as <i>MyType</i></li>		
+ * </ul>
  * 
  * @author Matt
  */
@@ -140,7 +149,7 @@ public class RegionMapper {
 			String name = fd.getVariable(0).getNameAsString();
 			String desc = getDescriptor(fd.getCommonType());
 			MDec member = decClass.getMember(name, desc);
-			getMemberRanges(member).add(nameRange.get());
+			if (member != null) getMemberRanges(member).add(nameRange.get());
 		}
 		// Mark declared methods
 		List<MethodDeclaration> methods = cu.findAll(MethodDeclaration.class);
@@ -151,7 +160,7 @@ public class RegionMapper {
 			String name = md.getNameAsString();
 			String desc = getMethodDesc(md);
 			MDec member = decClass.getMember(name, desc);
-			getMemberRanges(member).add(nameRange.get());
+			if (member != null) getMemberRanges(member).add(nameRange.get());
 		}
 		// Mark field references like "this.myField"
 		List<FieldAccessExpr> fieldRefs = cu.findAll(FieldAccessExpr.class);
@@ -162,7 +171,7 @@ public class RegionMapper {
 			String name = fa.getNameAsString();
 			Expression scope = fa.getScope();
 			if (scope != null && scope.toString().equals("this")) {
-				Optional<MDec> fdec = getFieldDecByName(decClass, name);
+				Optional<MDec> fdec = getFieldDecByNameInHierarchy(decClass, name);
 				if (fdec.isPresent()) {
 					getMemberRanges(fdec.get()).add(nameRange.get());
 				}
@@ -170,7 +179,7 @@ public class RegionMapper {
 				Optional<CDec> scopeHost = getDecFromScope(scope);
 				if (scopeHost.isPresent()) {
 					CDec cdec = scopeHost.get();
-					Optional<MDec> mdec = getFieldDecByName(cdec, name);
+					Optional<MDec> mdec = getFieldDecByNameInHierarchy(cdec, name);
 					if (mdec.isPresent()) {
 						getMemberRanges(mdec.get()).add(nameRange.get());
 					}
@@ -278,7 +287,7 @@ public class RegionMapper {
 			Optional<CDec> context = getDecFromScope(scopeField.getScope());
 			if (context.isPresent()) {
 				CDec contextDex = context.get();
-				Optional<MDec> memberOpt = getFieldDecByName(contextDex, scopeField.getNameAsString());
+				Optional<MDec> memberOpt = getFieldDecByNameInHierarchy(contextDex, scopeField.getNameAsString());
 				// Get internal type of the variable, that will be our class declaration to
 				// return
 				if (memberOpt.isPresent()) {
@@ -323,14 +332,41 @@ public class RegionMapper {
 			MethodDeclaration md = mdOpt.get();
 			String mdName = md.getNameAsString();
 			String mdDesc = getMethodDesc(md);
-			MDec member = decClass.getMember(mdName, mdDesc);
-			if (member == null) {
-				// Failed to find method? Should not occur.
-				return Optional.empty();
+			// MDec member = decClass.getMember(mdName, mdDesc);
+			Optional<MDec> member = getMDecByNameAndDescInHierarchy(decClass, mdName, mdDesc);
+			if (member.isPresent()) {
+				return member.get().getVariableByName(varName);
 			}
-			return member.getVariableByName(varName);
+			// Failed to find method
+			return Optional.empty();
 		}
 		return Optional.empty();
+	}
+	
+	/**
+	 * @param dec
+	 *            Host declared class.
+	 * @param name
+	 *            Name of the method we want to return.
+	 * @param desc
+	 *            Descriptor of the method we want to return.
+	 * @return Method declaration by the given name.
+	 */
+	private Optional<MDec> getFieldDecByNameInHierarchy(CDec dec, String name) {
+		Optional<MDec> val = getFieldDecByName(dec, name);
+		while (!val.isPresent()) {
+			// Get parent CDec 
+			CVert v = Hierarchy.INSTANCE.getVertex(dec.map().getOriginalName());
+			if (v == null)
+				break;
+			v = v.getSuper();
+			dec = quantifiedToDec.get(v.getName());
+			if (dec == null) 
+				break;
+			// Research in parent class
+			val = getFieldDecByName(dec, name);
+		}
+		return val;
 	}
 
 	/**
@@ -376,6 +412,59 @@ public class RegionMapper {
 				CMap map = dec.map();
 				Optional<MMap> mappedMember = map.getMembers().stream()
 						.filter(mm -> mm.isMethod() && mm.getCurrentName().equals(name) && argCheck(args, mm.getCurrentDesc())).findFirst();
+				if (mappedMember.isPresent()) {
+					return Optional.of(MDec.fromMember(dec, name, mappedMember.get().getCurrentDesc()));
+				}
+			}
+			return Optional.empty();
+		}
+	}
+	
+	/**
+	 * @param dec
+	 *            Host declared class.
+	 * @param name
+	 *            Name of the method we want to return.
+	 * @param desc
+	 *            Descriptor of the method we want to return.
+	 * @return Method declaration by the given name.
+	 */
+	private Optional<MDec> getMDecByNameAndDescInHierarchy(CDec dec, String name, String desc) {
+		Optional<MDec> val = getMDecByNameAndDesc(dec, name, desc);
+		while (!val.isPresent()) {
+			// Get parent CDec 
+			CVert v = Hierarchy.INSTANCE.getVertex(dec.map().getOriginalName());
+			if (v == null)
+				break;
+			v = v.getSuper();
+			dec = quantifiedToDec.get(v.getName());
+			if (dec == null) 
+				break;
+			// Research in parent class
+			val = getMDecByNameAndDesc(dec, name, desc);
+		}
+		return val;
+	}
+	
+	/**
+	 * @param dec
+	 *            Host declared class.
+	 * @param name
+	 *            Name of the method we want to return.
+	 * @param desc
+	 *            Descriptor of the method we want to return.
+	 * @return Method declaration by the given name.
+	 */
+	private Optional<MDec> getMDecByNameAndDesc(CDec dec, String name, String desc) {
+		if (dec.equals(decClass)) {
+			return dec.getMembers().stream().filter(md -> {
+				return md.hasMappings() && name.equals(md.map().getCurrentName()) && desc.equals(md.getDesc());
+			}).findFirst();
+		} else {
+			if (dec.hasMappings()) {
+				CMap map = dec.map();
+				Optional<MMap> mappedMember = map.getMembers().stream()
+						.filter(mm -> mm.getCurrentName().equals(name) && desc.equals(mm.getCurrentDesc())).findFirst();
 				if (mappedMember.isPresent()) {
 					return Optional.of(MDec.fromMember(dec, name, mappedMember.get().getCurrentDesc()));
 				}
