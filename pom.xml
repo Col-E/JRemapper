@@ -3,7 +3,7 @@
 	<groupId>me.coley</groupId>
 	<artifactId>jremapper</artifactId>
 	<url>https://github.com/Col-E/JRemapper/</url>
-	<version>2.1.0</version>
+	<version>2.2.0</version>
 	<name>JRemapper</name>
 	<description>A manual java bytecode deobfuscator</description>
 	<!--
@@ -15,15 +15,6 @@
 	</properties>
 	<!-- Additional repo's -->
 	<repositories>
-		<!-- 
-		Local repository for CFR and other libs not on Maven.	
-		Massive thanks to Mark S. Kolich:
-		From: http://mark.koli.ch/maven-add-local-jar-dependency-to-classpath
-		-->
-		<repository>
-			<id>local</id>
-			<url>file://${basedir}/dependencies</url>
-		</repository>
 		<!-- 3rd party repo, used because I'm too lazy to register on the central -->
 		<repository>
 		    <id>jitpack.io</id>
@@ -70,11 +61,11 @@
  		   <artifactId>jregex</artifactId>
   		  <version>1.2_01</version>
 		</dependency>
-		<!-- Local, see: http://www.benf.org/other/cfr/faq.html for why -->
+		<!-- https://mvnrepository.com/artifact/org.benf/cfr -->
 		<dependency>
-			<groupId>org.benf</groupId>
-			<artifactId>cfr</artifactId>
-			<version>${cfr.version}</version>
+		    <groupId>org.benf</groupId>
+		    <artifactId>cfr</artifactId>
+		    <version>0.141</version>
 		</dependency>
 		<!-- From jitpack.io -->
 		<dependency>
