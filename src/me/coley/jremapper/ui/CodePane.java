@@ -3,11 +3,7 @@ package me.coley.jremapper.ui;
 import java.awt.Toolkit;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import javafx.event.EventHandler;
 import javafx.geometry.Side;
 import javafx.scene.control.Label;
@@ -23,11 +19,10 @@ import javafx.scene.layout.GridPane;
 import javafx.util.Duration;
 import jregex.Matcher;
 import jregex.Pattern;
-
-import org.benf.cfr.reader.PluginRunner;
+import org.benf.cfr.reader.api.CfrDriver;
 import org.benf.cfr.reader.api.ClassFileSource;
+import org.benf.cfr.reader.api.OutputSinkFactory;
 import org.benf.cfr.reader.bytecode.analysis.parse.utils.Pair;
-import org.benf.cfr.reader.state.DCCommonState;
 import org.controlsfx.control.HiddenSidesPane;
 import org.controlsfx.control.textfield.CustomTextField;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -470,11 +465,16 @@ public class CodePane extends BorderPane {
 	private String decompile() {
 		CFRResourceLookup lookupHelper = new CFRResourceLookup();
 		Map<String, String> options = CFROpts.toStringMap();
-		CFRPluginRunner runner = new CFRPluginRunner(options, new CFRSourceImpl(lookupHelper));
-		String decompilation = runner.getDecompilationFor(path);
-		if (decompilation.startsWith("/")) {
-			decompilation = decompilation.substring(decompilation.indexOf("*/") + 3);
-		}
+		SinkFactory sink = new SinkFactory();
+		// Setup driver
+		CfrDriver driver = new CfrDriver.Builder()
+				.withClassFileSource(new CFRSourceImpl(lookupHelper))
+				.withOutputSink(sink)
+				.withOptions(options)
+				.build();
+		// Decompile
+		driver.analyse(Collections.singletonList(path));
+		String decompilation = sink.getDecompilation();
 		// JavaParser does NOT like inline comments like this.
 		decompilation = decompilation.replace("/* synthetic */ ", "");
 		decompilation = decompilation.replace("/* bridge */ ", "");
@@ -559,31 +559,6 @@ public class CodePane extends BorderPane {
 	}
 
 	/**
-	 * Extension of CFR's front-end. <br>
-	 * Uses reflection to expose internal components. Currently unused but may be
-	 * useful later.
-	 * 
-	 * @author Matt
-	 */
-	private static class CFRPluginRunner extends PluginRunner {
-
-		public CFRPluginRunner(Map<String, String> options, CFRSourceImpl src) {
-			super(options, src);
-		}
-
-		@SuppressWarnings("unused")
-		public DCCommonState getState() {
-			try {
-				return (DCCommonState) PluginRunner.class.getDeclaredField("dcCommonState").get(this);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			return null;
-		}
-
-	}
-
-	/**
 	 * Extension of CFR's front-end for looking up resources. Successful lookups
 	 * allow more accurate decompilations.
 	 * 
@@ -636,6 +611,45 @@ public class CodePane extends BorderPane {
 			}
 		}
 	}
+	
+	/**
+	 * CFR decompile output sink.
+	 * 
+	 * @author Matt
+	 */
+	private static class SinkFactory implements OutputSinkFactory {
+		private String decompile = "Failed to get CFR output";
+
+		@Override
+		public List<SinkClass> getSupportedSinks(SinkType sinkType, Collection<SinkClass> collection) {
+			return Arrays.asList(SinkClass.STRING);
+		}
+
+		@Override
+		public <T> Sink<T> getSink(SinkType sinkType, SinkClass sinkClass) {
+			switch (sinkType) {
+			case EXCEPTION:
+				return sinkable -> {
+					Logging.error("CFR: " + sinkable);
+				};
+			case JAVA:
+				return sinkable -> {
+					decompile = sinkable.toString();
+				};
+			case PROGRESS:
+				return sinkable -> {
+					Logging.info("CFR: " + sinkable);
+				};
+			default:
+				break;
+			}
+			return ignore -> {};
+		}
+
+		public String getDecompilation() {
+			return decompile;
+		}
+	};
 
 	/**
 	 * CFR option map.
