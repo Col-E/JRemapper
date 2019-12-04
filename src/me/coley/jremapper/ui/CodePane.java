@@ -475,6 +475,8 @@ public class CodePane extends BorderPane {
 		// Decompile
 		driver.analyse(Collections.singletonList(path));
 		String decompilation = sink.getDecompilation();
+		if (decompilation.startsWith("/*\n" + " * Decompiled with CFR.\n" + " */"))
+			decompilation = decompilation.substring(decompilation.indexOf("*/") + 3);
 		// JavaParser does NOT like inline comments like this.
 		decompilation = decompilation.replace("/* synthetic */ ", "");
 		decompilation = decompilation.replace("/* bridge */ ", "");
@@ -488,9 +490,9 @@ public class CodePane extends BorderPane {
 
 	/**
 	 * A very ugly way of focusing on some text... Focusing is odd.
-	 * 
+	 *
 	 * @param textField
-	 *            Textfield to focus on.
+	 * 		Textfield to focus on.
 	 */
 	private void uglyFocus(CustomTextField textField) {
 		new Thread() {
@@ -513,7 +515,8 @@ public class CodePane extends BorderPane {
 
 	/**
 	 * @param text
-	 *            Text to apply styles to.
+	 * 		Text to apply styles to.
+	 *
 	 * @return Stylized regions of the text <i>(via css tags)</i>.
 	 */
 	private StyleSpans<Collection<String>> computeStyle(String text) {

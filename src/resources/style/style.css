@@ -21,7 +21,6 @@
 	-fx-background-color: rgb(49, 54, 59);
 }
 .ui-menu-bar *.context-menu {
-	-fx-skin: "com.sun.javafx.scene.control.skin.ContextMenuSkin";
 	-fx-background-color: rgb(41,46, 50);
 	-fx-border-color: rgb(29, 32, 35);
 	-fx-border-width: 1;

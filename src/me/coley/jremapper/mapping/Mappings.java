@@ -135,7 +135,7 @@ public enum Mappings {
 		mappings.clear();
 		Map<CMap, Set<String>> inners = new HashMap<>();
 		input.rawNodeMap.forEach((name, raw) -> {
-			ClassVisitor cv = new ClassVisitor(Opcodes.ASM6) {
+			ClassVisitor cv = new ClassVisitor(Opcodes.ASM7) {
 				private CMap cm;
 
 				@Override

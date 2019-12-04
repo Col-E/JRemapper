@@ -1,12 +1,6 @@
 package me.coley.jremapper.util;
 
-import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.*;
-import java.net.URL;
-import java.net.URLClassLoader;
-
-import sun.reflect.FieldAccessor;
 
 /**
  * Reflection utilities.
@@ -14,8 +8,6 @@ import sun.reflect.FieldAccessor;
  * @author Matt
  */
 public class Reflect {
-	private static Method privateGetDeclaredFields;
-	private static Method getFieldAccessor;
 
 	/**
 	 * Get all fields belonging to the given class.
@@ -25,11 +17,11 @@ public class Reflect {
 	 * @return Array of class's fields.
 	 */
 	public static Field[] fields(Class<?> clazz) {
-		// Use underlying method in java/lang/Class so that changes to the
-		// fields are permanent since we are accessing the original copy of the
-		// field[] instead of the copy that public-facing methods give to us.
 		try {
-			return (Field[]) privateGetDeclaredFields.invoke(clazz, false);
+			Field[] ff = clazz.getDeclaredFields();
+			for (Field f : ff)
+				f.setAccessible(true);
+			return ff;
 		} catch (Exception e) {
 			Logging.fatal(e);
 			return null;
@@ -106,8 +98,7 @@ public class Reflect {
 	@SuppressWarnings("unchecked")
 	public static <T> T get(Object instance, Field field) {
 		try {
-			FieldAccessor acc = (FieldAccessor) getFieldAccessor.invoke(field, instance);
-			return (T) acc.get(instance);
+			return (T) field.get(instance);
 		} catch (Exception e) {
 			Logging.fatal(e);
 			return null;
@@ -126,44 +117,7 @@ public class Reflect {
 	 */
 	public static void set(Object instance, Field field, Object value) {
 		try {
-			FieldAccessor acc = (FieldAccessor) getFieldAccessor.invoke(field, instance);
-			acc.set(instance, value);
-		} catch (Exception e) {
-			Logging.fatal(e);
-		}
-	}
-
-	/**
-	 * Adds the contents of the given file <i>(be it a directory or jar, does
-	 * not matter)</i> to the system path.
-	 * 
-	 * @param file
-	 * @throws IOException
-	 */
-	public static void extendClasspath(File file) throws IOException {
-		URLClassLoader sysLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-		URL urls[] = sysLoader.getURLs(), udir = file.toURI().toURL();
-		String udirs = udir.toString();
-		for (URL url : urls)
-			if (url.toString().equalsIgnoreCase(udirs)) return;
-		Class<URLClassLoader> sysClass = URLClassLoader.class;
-		try {
-			Method method = sysClass.getDeclaredMethod("addURL", URL.class);
-			method.setAccessible(true);
-			method.invoke(sysLoader, new Object[] { udir });
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-	}
-
-	static {
-		try {
-			// These are used to access the direct Field instances instead of
-			// the copies you normally get through #getDeclaredFields.
-			privateGetDeclaredFields = Class.class.getDeclaredMethod("privateGetDeclaredFields", boolean.class);
-			privateGetDeclaredFields.setAccessible(true);
-			getFieldAccessor = Field.class.getDeclaredMethod("getFieldAccessor", Object.class);
-			getFieldAccessor.setAccessible(true);
+			field.set(instance, value);
 		} catch (Exception e) {
 			Logging.fatal(e);
 		}
