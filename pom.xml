@@ -3,15 +3,15 @@
 	<groupId>me.coley</groupId>
 	<artifactId>jremapper</artifactId>
 	<url>https://github.com/Col-E/JRemapper/</url>
-	<version>2.2.0</version>
+	<version>2.3.0</version>
 	<name>JRemapper</name>
 	<description>A manual java bytecode deobfuscator</description>
 	<!--
 	Variables
 	-->
 	<properties>
-		<asm.version>6.2.1</asm.version>
-		<cfr.version>132</cfr.version>
+		<asm.version>7.2</asm.version>
+		<cfr.version>148</cfr.version>
 	</properties>
 	<!-- Additional repo's -->
 	<repositories>

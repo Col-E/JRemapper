@@ -663,6 +663,8 @@ public class RegionMapper {
 	 *         {@link #getNameLookup(String)} or if it is a primitive or void type.
 	 */
 	private String getDescriptor(Type type) {
+		if (type.isArrayType())
+			return "[" + getDescriptor(type.asArrayType().getComponentType());
 		return isPrim(type) ? primTypeToDesc(type) : typeToDesc(type);
 	}
 
