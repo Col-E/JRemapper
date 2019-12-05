@@ -10,7 +10,6 @@ import com.github.javaparser.Position;
 import com.github.javaparser.ast.*;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
-import com.github.javaparser.ast.type.*;
 
 import com.github.javaparser.resolution.Resolvable;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
@@ -21,8 +20,7 @@ import com.github.javaparser.symbolsolver.javassistmodel.JavassistMethodDeclarat
 import com.github.javaparser.symbolsolver.reflectionmodel.ReflectionMethodDeclaration;
 import javassist.CtMethod;
 import me.coley.jremapper.asm.Input;
-import me.coley.jremapper.util.Logging;
-import me.coley.jremapper.util.Reflect;
+import me.coley.jremapper.util.*;
 import org.objectweb.asm.ClassReader;
 
 /**
@@ -118,21 +116,7 @@ public class RegionMapper {
 				if (m.isPresent())
 					return m.get();
 			}
-			Optional<MethodDeclaration> ast = type.toAst();
-			String desc = null;
-			if (ast.isPresent()) {
-				desc = getMethodDesc(ast.get());
-			} else if (resolved instanceof JavassistMethodDeclaration){
-				CtMethod method = Reflect.get(resolved, "ctMethod");
-				if (method != null)
-					desc = method.getMethodInfo().getDescriptor();
-			} else if (resolved instanceof ReflectionMethodDeclaration) {
-				ReflectionMethodDeclaration ref = (ReflectionMethodDeclaration) resolved;
-				Method method = Reflect.get(ref, "method");
-				desc = org.objectweb.asm.Type.getType(method).getDescriptor();
-			} else {
-				desc = getMethodDesc(type);
-			}
+			String desc = ParserTypeUtil.getResolvedMethodDesc(type);
 			return dec.getMember(name, desc);
 		} else if (resolved instanceof ResolvedFieldDeclaration) {
 			ResolvedFieldDeclaration type = (ResolvedFieldDeclaration) resolved;
@@ -144,20 +128,11 @@ public class RegionMapper {
 				if (m.isPresent())
 					return m.get();
 			}
-			String desc = null;
-			try {
-				desc =	getDescriptor(type.getType());
-			} catch(UnsolvedSymbolException ex) {
-				if (type instanceof JavaParserFieldDeclaration) {
-					desc = getDescriptor(((JavaParserFieldDeclaration) type).getWrappedNode().getCommonType());
-				}
-			}
+			String desc = ParserTypeUtil.getResolvedFieldDesc(type);
 			return dec.getMember(name, desc);
 		}
 		return null;
 	}
-
-
 
 	/**
 	 * @param name
@@ -206,257 +181,6 @@ public class RegionMapper {
 		} catch(IOException e) {
 			return null;
 		}
-	}
-
-	/**
-	 * @param md
-	 *            JavaParser method declaration.
-	 * @return Internal descriptor from declaration, or {@code null} if any parsing
-	 *         failures occured.
-	 */
-	private String getMethodDesc(MethodDeclaration md) {
-		StringBuilder sbDesc = new StringBuilder("(");
-		// Append the method parameters for the descriptor
-		NodeList<Parameter> params = md.getParameters();
-		for (Parameter param : params) {
-			Type pType = param.getType();
-			String pDesc = getDescriptor(pType);
-			if (pDesc == null)
-				return null;
-			sbDesc.append(pDesc);
-		}
-		// Append the return type for the descriptor
-		Type typeRet = md.getType();
-		String retDesc = getDescriptor(typeRet);
-		if (retDesc == null)
-			return null;
-		sbDesc.append(")");
-		sbDesc.append(retDesc);
-		return sbDesc.toString();
-	}
-
-	/**
-	 * @param md
-	 *            JavaParser resolved method declaration.
-	 * @return Internal descriptor from declaration, or {@code null} if any parsing
-	 *         failures occured.
-	 */
-	private String getMethodDesc(ResolvedMethodDeclaration md) {
-		StringBuilder sbDesc = new StringBuilder("(");
-		// Append the method parameters for the descriptor
-		int p = md.getNumberOfParams();
-		for (int i = 0; i < p; i++) {
-			ResolvedParameterDeclaration param = md.getParam(i);
-			String pDesc = null;
-			if (param.isType()) {
-				ResolvedTypeDeclaration pType = param.asType();
-				pDesc = typeToDesc(pType);
-			} else {
-				ResolvedType pType = param.getType();
-				pDesc = typeToDesc(pType);
-			}
-			if (pDesc == null)
-				return null;
-			sbDesc.append(pDesc);
-		}
-		// Append the return type for the descriptor
-		ResolvedType typeRet = md.getReturnType();
-		String retDesc = typeToDesc(typeRet);
-		if (retDesc == null) {
-			return null;
-		}
-		sbDesc.append(")");
-		sbDesc.append(retDesc);
-		return sbDesc.toString();
-	}
-
-	/**
-	 * @param type
-	 * 		JavaParser type.
-	 *
-	 * @return Internal descriptor from type, assuming the type is available or if it is a
-	 * primitive or void type.
-	 */
-	private String getDescriptor(Type type) {
-		if (type.isArrayType())
-			return "[" + getDescriptor(type.asArrayType().getComponentType());
-		return isPrim(type) ? primTypeToDesc(type) : typeToDesc(type);
-	}
-
-
-	/**
-	 * @param type
-	 * 		JavaParser type.
-	 *
-	 * @return Internal descriptor from type, assuming the type is available or if it is a
-	 * primitive or void type.
-	 */
-	private String getDescriptor(ResolvedType type) {
-		if (type.isArray())
-			return "[" + getDescriptor(type.asArrayType().getComponentType());
-		return type.isPrimitive() ? primTypeToDesc(type) : typeToDesc(type);
-	}
-
-	/**
-	 * @param type
-	 *            JavaParser type. Must be an object type.
-	 * @return Internal descriptor from type, assuming the type is available.
-	 */
-	private String typeToDesc(Type type) {
-		String key = null;
-		if (type instanceof ClassOrInterfaceType) {
-			try {
-				key = ((ClassOrInterfaceType) type).resolve().getQualifiedName();
-			} catch(Exception ex) { /* ignored */ }
-		}
-		if (key == null)
-			key = type.asString();
-
-		CDec dec = getClassDec(key);
-		if (dec == null)
-			return null;
-		StringBuilder sbDesc = new StringBuilder();
-		for (int i = 0; i < type.getArrayLevel(); i++)
-			sbDesc.append("[");
-		sbDesc.append("L");
-		sbDesc.append(dec.getFullName());
-		sbDesc.append(";");
-		return sbDesc.toString();
-	}
-
-	/**
-	 * @param type
-	 *            JavaParser type. Must be an object type.
-	 * @return Internal descriptor from type, assuming the type is available.
-	 */
-	private String typeToDesc(ResolvedType type) {
-		CDec dec = null;
-		if (type instanceof ResolvedTypeVariable) {
-			dec = getClassDec(((ResolvedTypeVariable) type).qualifiedName());
-		} else if (type instanceof ResolvedTypeParameterDeclaration) {
-			dec = getClassDec(type.asTypeParameter().getQualifiedName());
-		} else if(type.isPrimitive()) {
-			return primTypeToDesc(type.asPrimitive());
-		} else if(type.isVoid()) {
-			return "V";
-		} else {
-			dec = getClassDec(type.describe());
-		}
-		if (dec == null)
-			return null;
-		StringBuilder sbDesc = new StringBuilder();
-		for (int i = 0; i < type.arrayLevel(); i++)
-			sbDesc.append("[");
-		sbDesc.append("L");
-		sbDesc.append(dec.getFullName());
-		sbDesc.append(";");
-		return sbDesc.toString();
-	}
-
-	/**
-	 * @param type
-	 *            JavaParser resolved type.
-	 * @return Internal descriptor from type.
-	 */
-	private String typeToDesc(ResolvedTypeDeclaration type) {
-		CDec dec = getClassDec(type.getQualifiedName());
-		if (dec == null)
-			return null;
-		return "L" + dec.getFullName() + ";";
-	}
-
-	/**
-	 * @param type
-	 *            JavaParser type.
-	 * @return {@code true} if the type denotes a primitive or void type.
-	 */
-	private static boolean isPrim(Type type) {
-		// void is not a primitive, but lets just pretend it is.
-		return type.isVoidType() || type.isPrimitiveType();
-	}
-
-	/**
-	 * @param type
-	 *            JavaParser type. Must be a primitive.
-	 * @return Internal descriptor.
-	 */
-	private static String primTypeToDesc(Type type) {
-		String desc = null;
-		switch (type.asString()) {
-			case "boolean":
-				desc = "Z";
-				break;
-			case "int":
-				desc = "I";
-				break;
-			case "long":
-				desc = "J";
-				break;
-			case "short":
-				desc = "S";
-				break;
-			case "byte":
-				desc = "B";
-				break;
-			case "double":
-				desc = "D";
-				break;
-			case "float":
-				desc = "F";
-				break;
-			case "void":
-				desc = "V";
-				break;
-			default:
-				throw new RuntimeException("Unknown primitive type field '" + type.asString() + "'");
-		}
-		StringBuilder sbDesc = new StringBuilder();
-		for (int i = 0; i < type.getArrayLevel(); i++)
-			sbDesc.append("[");
-		sbDesc.append(desc);
-		return sbDesc.toString();
-	}
-
-	/**
-	 * @param type
-	 *            JavaParser type. Must be a primitive.
-	 * @return Internal descriptor.
-	 */
-	private static String primTypeToDesc(ResolvedType type) {
-		String desc = null;
-		switch (type.describe()) {
-			case "boolean":
-				desc = "Z";
-				break;
-			case "int":
-				desc = "I";
-				break;
-			case "long":
-				desc = "J";
-				break;
-			case "short":
-				desc = "S";
-				break;
-			case "byte":
-				desc = "B";
-				break;
-			case "double":
-				desc = "D";
-				break;
-			case "float":
-				desc = "F";
-				break;
-			case "void":
-				desc = "V";
-				break;
-			default:
-				throw new RuntimeException("Unknown primitive type field '" + type.describe() + "'");
-		}
-		StringBuilder sbDesc = new StringBuilder();
-		for (int i = 0; i < type.arrayLevel(); i++)
-			sbDesc.append("[");
-		sbDesc.append(desc);
-		return sbDesc.toString();
 	}
 
 	/**
