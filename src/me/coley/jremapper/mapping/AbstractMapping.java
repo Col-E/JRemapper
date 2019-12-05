@@ -11,6 +11,11 @@ public abstract class AbstractMapping {
 	 * Current mapping name.
 	 */
 	private String currentName;
+	/**
+	 * Has the mapping been modified.
+	 */
+	private boolean dirty;
+
 
 	public AbstractMapping(String originalName) {
 		currentName = (this.originalName = originalName);
@@ -35,6 +40,7 @@ public abstract class AbstractMapping {
 	 *            New name to set.
 	 */
 	public void setCurrentName(String currentName) {
+		dirty = true;
 		this.currentName = currentName;
 	}
 
@@ -43,6 +49,14 @@ public abstract class AbstractMapping {
 	 */
 	public boolean isRenamed() {
 		return !getOriginalName().equals(getCurrentName());
+	}
+
+	public boolean isDirty() {
+		return dirty;
+	}
+
+	protected void setDirty(boolean dirty) {
+		this.dirty = dirty;
 	}
 
 	@Override

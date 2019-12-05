@@ -30,6 +30,10 @@ public class CMap extends AbstractMapping {
 		members.put(key, new MMap(this, name, desc));
 	}
 
+	public boolean hasRenamedMembers() {
+		return members.values().stream().anyMatch(AbstractMapping::isRenamed);
+	}
+
 	private String key(String name, String desc) {
 		return name + "#" + desc;
 	}
@@ -55,4 +59,5 @@ public class CMap extends AbstractMapping {
 			throw new RuntimeException();
 		inners.add(inner);
 	}
+
 }

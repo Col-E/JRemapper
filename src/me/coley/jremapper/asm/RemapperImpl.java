@@ -3,6 +3,7 @@ package me.coley.jremapper.asm;
 import java.util.HashMap;
 import java.util.Map;
 
+import me.coley.jremapper.mapping.AbstractMapping;
 import org.objectweb.asm.commons.SimpleRemapper;
 
 import me.coley.jremapper.mapping.Mappings;
@@ -18,14 +19,16 @@ public class RemapperImpl extends SimpleRemapper {
 	 */
 	public static RemapperImpl create() {
 		Map<String, String> mapping = new HashMap<>();
-		Mappings.INSTANCE.getMappings().forEach(cm -> {
+		Mappings.INSTANCE.getMappings().stream()
+				.filter(AbstractMapping::isDirty)
+				.forEach(cm -> {
 			mapping.put(cm.getOriginalName(), cm.getCurrentName());
-			cm.getMembers().forEach(mm -> {
-				if (mm.isMethod()) {
-					mapping.put(cm.getOriginalName() + "." + mm.getOriginalName() + mm.getOriginalDesc(),
-							mm.getCurrentName());
+			cm.getMembers().stream().filter(AbstractMapping::isRenamed).forEach(mm -> {
+				if(mm.isMethod()) {
+					mapping.put(cm.getOriginalName() + "." + mm.getOriginalName() + mm.getOriginalDesc(), mm.getCurrentName());
 				} else {
-					mapping.put(cm.getOriginalName() + "." + mm.getOriginalName(), mm.getCurrentName());
+					mapping.put(cm.getOriginalName() + "." + mm.getOriginalName(),
+							mm.getCurrentName());
 				}
 			});
 		});

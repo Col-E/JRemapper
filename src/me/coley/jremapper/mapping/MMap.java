@@ -18,6 +18,8 @@ public class MMap extends AbstractMapping {
 
 	@Override
 	public void setCurrentName(String currentName) {
+		owner.setDirty(true);
+		setDirty(true);
 		String past = getCurrentName();
 		if (isMethod()) {
 			Hierarchy.INSTANCE.onMemberRename(this, past, currentName);

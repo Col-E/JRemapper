@@ -72,6 +72,7 @@ public enum Mappings {
 	 */
 	public CMap getClassReverseMapping(String currentName) {
 		return mappings.values().stream()
+				.filter(AbstractMapping::isDirty)
 				.filter(cm -> cm.getCurrentName().equals(currentName))
 				.findFirst().orElse(null);
 	}
@@ -141,6 +142,7 @@ public enum Mappings {
 					mappings.put(name, cm = new CMap(name));
 				}
 
+				@Override
 				public void visitInnerClass(final String name, final String outerName, final String innerName,
 						final int access) {
 					if (cm.getOriginalName().endsWith(name)) {
@@ -222,11 +224,15 @@ public enum Mappings {
 	public JsonValue toMapping() {
 		JsonArray array = Json.array();
 		for (CMap cm : mappings.values()) {
+			if (!cm.isDirty())
+				continue;
 			JsonObject mapClass = Json.object();
 			mapClass.add("name-in", cm.getOriginalName());
 			mapClass.add("name-out", cm.getCurrentName());
 			JsonArray members = Json.array();
 			for (MMap mm : cm.getMembers()) {
+				if (!mm.isDirty())
+					continue;
 				JsonObject mapMember = Json.object();
 				mapMember.add("name-in", mm.getOriginalName());
 				mapMember.add("name-out", mm.getCurrentName());
@@ -234,7 +240,8 @@ public enum Mappings {
 				mapMember.add("desc-out", mm.getCurrentDesc());
 				members.add(mapMember);
 			}
-			mapClass.add("members", members);
+			if (members.size() > 0)
+				mapClass.add("members", members);
 			array.add(mapClass);
 		}
 		return array;

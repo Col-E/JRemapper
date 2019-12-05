@@ -13,6 +13,8 @@ import com.github.javaparser.resolution.Resolvable;
 import com.github.javaparser.resolution.declarations.*;
 import com.github.javaparser.resolution.types.*;
 import me.coley.jremapper.asm.Input;
+import me.coley.jremapper.mapping.CMap;
+import me.coley.jremapper.mapping.Mappings;
 import me.coley.jremapper.util.*;
 import org.objectweb.asm.ClassReader;
 
@@ -148,6 +150,10 @@ public class RegionMapper {
 	 * @return Declaration wrapper for class.
 	 */
 	private CDec generateDec(String name) {
+		CMap mapped = Mappings.INSTANCE.getClassReverseMapping(name);
+		if (mapped != null) {
+			name = mapped.getOriginalName();
+		}
 		CDec dec = CDec.fromClass(name);
 		ClassReader cr = reader(dec.getFullName());
 		if (!input.hasRawClass(dec.getFullName()))
