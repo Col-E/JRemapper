@@ -204,7 +204,7 @@ public enum Mappings {
 						JsonObject mmm = mm.asObject();
 						String nameIn = mmm.getString("name-in", null);
 						String descIn = mmm.getString("desc-in", null);
-						if (nameIn != null && descIn != null) {
+						if (nameIn != null && descIn != null && cm != null) {
 							MMap a = cm.lookup(nameIn, descIn);
 							if (a != null) {
 								String nameOut = mmm.getString("name-out", null);
