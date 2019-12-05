@@ -25,18 +25,15 @@ public class Threads {
 	}
 
 	public static void runLater(int delay, Runnable r) {
-		new Thread() {
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(delay);
-					r.run();
-				} catch (Exception e) {
-					Logging.error(e);
-				}
-
+		new Thread(() -> {
+			try {
+				Thread.sleep(delay);
+				r.run();
+			} catch (Exception e) {
+				Logging.error(e);
 			}
-		}.start();
+
+		}).start();
 	}
 
 	public static void runFx(Runnable r) {

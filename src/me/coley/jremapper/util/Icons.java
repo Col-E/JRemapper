@@ -116,52 +116,39 @@ public class Icons {
 
 	/**
 	 * Get single image for access. Intended usage for individual modifiers.
-	 * 
+	 *
 	 * @param access
-	 *            Single modifier flag.
+	 * 		Single modifier flag.
 	 * @param context
+	 * 		Access util
+	 *
 	 * @return ImageView of flag.
 	 */
 	public static Node getAccess(int access, AccessContext context) {
-		if (Access.isEnum(access)) {
+		if (Access.isEnum(access))
 			return new ImageView(CL_ENUM);
-		}
-		if (Access.isInterface(access)) {
+		if (Access.isInterface(access))
 			return new ImageView(CL_INTERFACE);
-		}
-		if (Access.isAnnotation(access)) {
+		if (Access.isAnnotation(access))
 			return new ImageView(CL_ANNOTATION);
-		}
-		if (Access.isPublic(access)) {
+		if (Access.isPublic(access))
 			return new ImageView(F_PUBLIC);
-		}
-		if (Access.isProtected(access)) {
+		if (Access.isProtected(access))
 			return new ImageView(F_PROTECTED);
-		}
-		if (Access.isPrivate(access)) {
+		if (Access.isPrivate(access))
 			return new ImageView(F_PRIVATE);
-		}
-		if (Access.isAbstract(access)) {
+		if (Access.isAbstract(access))
 			return new ImageView(MOD_ABSTRACT);
-		}
-		if (Access.isFinal(access)) {
+		if (Access.isFinal(access))
 			return new ImageView(MOD_FINAL);
-		}
-		if (Access.isNative(access)) {
+		if (Access.isNative(access))
 			return new ImageView(MOD_NATIVE);
-		}
-		if (Access.isStatic(access)) {
+		if (Access.isStatic(access))
 			return new ImageView(MOD_STATIC);
-		}
-		if (Access.isSynthetic(access)) {
+		if (Access.isSynthetic(access))
 			return new ImageView(MOD_SYNTHETIC);
-		}
-		if (Access.isTransient(access)) {
+		if (Access.isTransient(access))
 			return new ImageView(MOD_TRANSIENT);
-		}
-		if (Access.isNative(access)) {
-			return new ImageView(MOD_NATIVE);
-		}
 		if (Access.isBridge(access)) {
 			if (context == AccessContext.METHOD) {
 				return new ImageView(MOD_SYNTHETIC);

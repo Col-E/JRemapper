@@ -49,10 +49,12 @@ public class Input implements TypeSolver {
 
 	/**
 	 * Create JarFile content maps.
-	 * 
+	 *
 	 * @param jarFile
+	 * 		File to load.
+	 *
 	 * @throws IOException
-	 *             Thrown if contents could not be read.
+	 * 		Thrown if contents could not be read.
 	 */
 	public Input(File jarFile) throws IOException {
 		updateCurrent();

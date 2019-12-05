@@ -31,10 +31,9 @@ public class CVert {
 	}
 
 	public CVert getSuper() {
-		Optional<CVert> parent = parents.stream()
+		return parents.stream()
 				.filter(v -> v.data.name.equals(getSuperName()))
-				.findFirst();
-		return parent.isPresent() ? parent.get() : null;
+				.findFirst().orElse(null);
 	}
 
 	@Override

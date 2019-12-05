@@ -48,25 +48,19 @@ public class FilePane extends BorderPane {
 		Bus.subscribe(this);
 		setCenter(tree);
 		// drag-drop support for inputs
-		tree.setOnDragOver(new EventHandler<DragEvent>() {
-			@Override
-			public void handle(DragEvent e) {
-				if (e.getGestureSource() != tree && e.getDragboard().hasFiles()) {
-					e.acceptTransferModes(TransferMode.COPY_OR_MOVE);
-				}
-				e.consume();
+		tree.setOnDragOver(e -> {
+			if (e.getGestureSource() != tree && e.getDragboard().hasFiles()) {
+				e.acceptTransferModes(TransferMode.COPY_OR_MOVE);
 			}
+			e.consume();
 		});
 
-		tree.setOnMouseClicked(new EventHandler<MouseEvent>() {
-			@Override
-			public void handle(MouseEvent e) {
-				// Double click to open class
-				if (e.getClickCount() == 2) {
-					FileTreeItem item = (FileTreeItem) tree.getSelectionModel().getSelectedItem();
-					if (item != null && !item.isDir) {
-						Bus.post(new ClassOpenEvent(item.fullPath));
-					}
+		tree.setOnMouseClicked(e -> {
+			// Double click to open class
+			if (e.getClickCount() == 2) {
+				FileTreeItem item = (FileTreeItem) tree.getSelectionModel().getSelectedItem();
+				if (item != null && !item.isDir) {
+					Bus.post(new ClassOpenEvent(item.fullPath));
 				}
 			}
 		});
@@ -110,13 +104,14 @@ public class FilePane extends BorderPane {
 			}
 		});
 		Bus.subscribe(this);
-		Threads.runFx(() -> tree.requestFocus());
+		Threads.runFx(tree::requestFocus);
 	}
 
 	/**
 	 * Resets the tree to match content of input.
-	 * 
+	 *
 	 * @param input
+	 * 		New content.
 	 */
 	@Listener
 	public void onInputChange(NewInputEvent input) {
@@ -165,8 +160,9 @@ public class FilePane extends BorderPane {
 
 	/**
 	 * Resets the tree to match content of input.
-	 * 
-	 * @param input
+	 *
+	 * @param remap
+	 * 		Mapping update that caused input content to change.
 	 */
 	@Listener
 	public void onMappingUpdate(MappingChangeEvent remap) {
@@ -207,15 +203,15 @@ public class FilePane extends BorderPane {
 
 	/**
 	 * Create root for input.
-	 * 
+	 *
 	 * @param input
+	 * 		Content to build.
+	 *
 	 * @return {@code FileTreeItem}.
 	 */
 	private final FileTreeItem getNodesForDirectory(Input input) {
 		FileTreeItem root = new FileTreeItem("root", null);
-		input.names().forEach(name -> {
-			addToRoot(root, name, name);
-		});
+		input.names().forEach(name -> addToRoot(root, name, name));
 		return root;
 	}
 

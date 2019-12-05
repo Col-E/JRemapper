@@ -131,8 +131,8 @@ public class Logging {
 	/**
 	 * Set the logger's level to the given one.
 	 * 
-	 * @param logger
-	 * @param level
+	 * @param logger Logger to modify.
+	 * @param level Level to set.
 	 */
 	private static void setLevel(Logger<?> logger, Level level) {
 		logger.setLevel(level);
@@ -141,9 +141,9 @@ public class Logging {
 	/**
 	 * Pad the given message with the given amount of characters.
 	 * 
-	 * @param message
-	 * @param padding
-	 * @param padChar
+	 * @param message Base message.
+	 * @param padding Level of padding.
+	 * @param padChar Pad character.
 	 * @return Message with prepended padding.
 	 */
 	private static String pad(String message, int padding, char padChar) {

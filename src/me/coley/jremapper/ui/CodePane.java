@@ -167,32 +167,29 @@ public class CodePane extends BorderPane {
 		final CodePane cp = this;
 		KeyCombination bindOpenDec = new KeyCodeCombination(KeyCode.N);
 		KeyCombination bindGoBack = new KeyCodeCombination(KeyCode.BACK_SPACE);
-		code.addEventHandler(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {
-			@Override
-			public void handle(KeyEvent event) {
-				if (bindOpenDec.match(event)) {
-					// jump to declaration selected
-					if (selectedDec instanceof CDec) {
-						CDec dec = (CDec) selectedDec;
-						CodePane pane = input.history.push(open(input, dec.getFullName()));
+		code.addEventHandler(KeyEvent.KEY_RELEASED, event -> {
+			if (bindOpenDec.match(event)) {
+				// jump to declaration selected
+				if (selectedDec instanceof CDec) {
+					CDec dec = (CDec) selectedDec;
+					CodePane pane = input.history.push(open(input, dec.getFullName()));
+					Bus.post(new OpenCodeEvent(pane));
+				} else if (selectedDec instanceof MDec) {
+					CodePane pane = cp;
+					MDec dec = (MDec) selectedDec;
+					if (!dec.getOwner().equals(regions.getHost())) {
+						pane = input.history.push(open(input, dec.getOwner().getFullName()));
 						Bus.post(new OpenCodeEvent(pane));
-					} else if (selectedDec instanceof MDec) {
-						CodePane pane = cp;
-						MDec dec = (MDec) selectedDec;
-						if (!dec.getOwner().equals(regions.getHost())) {
-							pane = input.history.push(open(input, dec.getOwner().getFullName()));
-							Bus.post(new OpenCodeEvent(pane));
-						}
-						try {
-							pane.selectMember(dec);
-						} catch (Exception e) {}
+					}
+					try {
+						pane.selectMember(dec);
+					} catch (Exception e) {}
 
-					}
-				} else if (bindGoBack.match(event)) {
-					// Go back to last open pane
-					if (previous != null) {
-						Bus.post(new OpenCodeEvent(previous));
-					}
+				}
+			} else if (bindGoBack.match(event)) {
+				// Go back to last open pane
+				if (previous != null) {
+					Bus.post(new OpenCodeEvent(previous));
 				}
 			}
 		});
@@ -396,11 +393,12 @@ public class CodePane extends BorderPane {
 
 	/**
 	 * Move the caret position to the specified member declaration.
-	 * 
+	 *
 	 * @param dec
+	 * 		Member definition.
 	 */
 	protected void selectMember(MDec dec) {
-		if (dec.isMethod()) {
+		if(dec.isMethod()) {
 			List<MethodDeclaration> decs = cu.findAll(MethodDeclaration.class);
 			for (MethodDeclaration md : decs) {
 				int line = md.getName().getRange().get().begin.line;
@@ -435,9 +433,9 @@ public class CodePane extends BorderPane {
 
 	/**
 	 * Generate member regions for the given text.
-	 * 
+	 *
 	 * @param decompile
-	 *            Decompiled java code.
+	 * 		Decompiled java code.
 	 */
 	private void setupRegions(String decompile) {
 		JavaParser parser = new JavaParser(input.getSourceParseConfig());
@@ -510,19 +508,16 @@ public class CodePane extends BorderPane {
 	 * 		Textfield to focus on.
 	 */
 	private void uglyFocus(CustomTextField textField) {
-		new Thread() {
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(500);
-					Threads.runFx(() -> {
-						try {
-							textField.requestFocus();
-						} catch (Exception e) {}
-					});
-				} catch (Exception e) {}
-			}
-		}.start();
+		new Thread(() -> {
+			try {
+				Thread.sleep(500);
+				Threads.runFx(() -> {
+					try {
+						textField.requestFocus();
+					} catch (Exception e) {}
+				});
+			} catch (Exception e) {}
+		}).start();
 	}
 
 	/**
@@ -637,24 +632,18 @@ public class CodePane extends BorderPane {
 
 		@Override
 		public List<SinkClass> getSupportedSinks(SinkType sinkType, Collection<SinkClass> collection) {
-			return Arrays.asList(SinkClass.STRING);
+			return Collections.singletonList(SinkClass.STRING);
 		}
 
 		@Override
 		public <T> Sink<T> getSink(SinkType sinkType, SinkClass sinkClass) {
 			switch (sinkType) {
 			case EXCEPTION:
-				return sinkable -> {
-					Logging.error("CFR: " + sinkable);
-				};
+				return sinkable -> Logging.error("CFR: " + sinkable);
 			case JAVA:
-				return sinkable -> {
-					decompile = sinkable.toString();
-				};
+				return sinkable -> decompile = sinkable.toString();
 			case PROGRESS:
-				return sinkable -> {
-					Logging.info("CFR: " + sinkable);
-				};
+				return sinkable -> Logging.info("CFR: " + sinkable);
 			default:
 				break;
 			}

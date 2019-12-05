@@ -20,11 +20,9 @@ public class CMap extends AbstractMapping {
 	}
 
 	public MMap lookupReverse(String name, String desc) {
-		Optional<MMap> optMap = members.values().stream().filter(mm -> mm.getCurrentName().equals(name) && mm.getCurrentDesc().equals(desc)).findFirst();
-		if (optMap.isPresent()) {
-			return optMap.get();
-		}
-		return null;
+		return members.values().stream()
+				.filter(mm -> mm.getCurrentName().equals(name) && mm.getCurrentDesc().equals(desc))
+				.findFirst().orElse(null);
 	}
 
 	public void addMember(String name, String desc) {

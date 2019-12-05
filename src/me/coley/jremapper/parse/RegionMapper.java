@@ -3,15 +3,10 @@ package me.coley.jremapper.parse;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.Set;
 
 import com.github.javaparser.Position;
-import com.github.javaparser.Range;
 import com.github.javaparser.ast.*;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
@@ -26,15 +21,9 @@ import com.github.javaparser.symbolsolver.javassistmodel.JavassistMethodDeclarat
 import com.github.javaparser.symbolsolver.reflectionmodel.ReflectionMethodDeclaration;
 import javassist.CtMethod;
 import me.coley.jremapper.asm.Input;
-import me.coley.jremapper.mapping.CMap;
-import me.coley.jremapper.mapping.CVert;
-import me.coley.jremapper.mapping.Hierarchy;
-import me.coley.jremapper.mapping.MMap;
-import me.coley.jremapper.mapping.Mappings;
 import me.coley.jremapper.util.Logging;
 import me.coley.jremapper.util.Reflect;
 import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
 
 /**
  * Allows linking regions of text do different mappings using the JavaParser
@@ -160,10 +149,8 @@ public class RegionMapper {
 				desc =	getDescriptor(type.getType());
 			} catch(UnsolvedSymbolException ex) {
 				if (type instanceof JavaParserFieldDeclaration) {
-					// ((JavaParserFieldDeclaration) type).getWrappedNode().getElementType()
 					desc = getDescriptor(((JavaParserFieldDeclaration) type).getWrappedNode().getCommonType());
 				}
-				ex.printStackTrace();
 			}
 			return dec.getMember(name, desc);
 		}

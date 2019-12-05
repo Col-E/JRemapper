@@ -71,12 +71,9 @@ public enum Mappings {
 	 * @return Mapping wrapper for the class.
 	 */
 	public CMap getClassReverseMapping(String currentName) {
-		Optional<CMap> optMap = mappings.values().stream().filter(cm -> cm.getCurrentName().equals(currentName))
-				.findFirst();
-		if (optMap.isPresent()) {
-			return optMap.get();
-		}
-		return null;
+		return mappings.values().stream()
+				.filter(cm -> cm.getCurrentName().equals(currentName))
+				.findFirst().orElse(null);
 	}
 
 	/**

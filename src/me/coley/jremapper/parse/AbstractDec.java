@@ -35,16 +35,12 @@ public abstract class AbstractDec<M extends AbstractMapping> {
 	}
 
 	/**
-	 * Find the mapping of this declared object as a non-mapped item.
-	 * 
-	 * @return
+	 * @return Mapping of this declared object as a non-mapped item.
 	 */
 	protected abstract M lookup();
 
 	/**
-	 * Find the mapping of this declared object as a mapped item.
-	 * 
-	 * @return
+	 * @return Mapping of this declared object as a mapped item.
 	 */
 	protected abstract M lookupReverse();
 

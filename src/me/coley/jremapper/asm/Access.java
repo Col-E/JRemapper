@@ -28,60 +28,6 @@ public class Access {
 	public static final int ENUM         = 0x04000;
 	public static final int MANDATED     = 0x08000;
 	public static final int SUPER        = 0x00020;
-	// Modifier sets
-	public static final int CLASS_MODIFIERS =
-		PUBLIC       | PRIVATE    | FINAL  |
-		STATIC       | ANNOTATION | ENUM   |
-		SYNTHETIC    | INTERFACE  | SUPER  |
-		ABSTRACT     | STRICT;
-	public static final int INTERFACE_MODIFIERS =
-		PUBLIC       | PROTECTED  | PRIVATE |
-		ABSTRACT     | STATIC     | STRICT  |
-		SYNTHETIC;
-	public static final int CONSTRUCTOR_MODIFIERS =
-		PUBLIC       | PROTECTED  | PRIVATE |
-		BRIDGE       | SYNTHETIC  | VARARGS;
-	public static final int METHOD_MODIFIERS =
-		PUBLIC       | PROTECTED  | PRIVATE |
-		ABSTRACT     | STATIC     | FINAL   |
-		SYNCHRONIZED | NATIVE     | STRICT  |
-		SYNTHETIC    | BRIDGE     | VARARGS;
-	public static final int FIELD_MODIFIERS =
-		PUBLIC       | PROTECTED  | PRIVATE |
-		STATIC       | TRANSIENT  | FINAL   |
-		VOLATILE     | SYNTHETIC;
-	public static final int PARAM_MODIFIERS =
-		FINAL        | SYNTHETIC  | MANDATED;
-	// Modifier sets, as arrays
-	public static final int[] CLASS_MODIFIERS_ARRAY = new int[] {
-		PUBLIC       , PRIVATE    , FINAL  ,
-		ABSTRACT     , ANNOTATION , ENUM   ,
-		INTERFACE    , STATIC     , STRICT ,
-		SUPER        , SYNTHETIC
-	};
-	public static final int[] INTERFACE_MODIFIERS_ARRAY = new int[] {
-		PUBLIC       , PROTECTED  , PRIVATE ,
-		ABSTRACT     , STATIC     , STRICT  ,
-		SYNTHETIC
-	};
-	public static final int[] CONSTRUCTOR_MODIFIERS_ARRAY = new int[] {
-		PUBLIC       , PROTECTED  , PRIVATE ,
-		BRIDGE       , SYNTHETIC  , VARARGS
-	};
-	public static final int[] METHOD_MODIFIERS_ARRAY = new int[] {
-		PUBLIC       , PROTECTED  , PRIVATE ,
-		ABSTRACT     , BRIDGE     , FINAL   ,
-		NATIVE       , STATIC     , STRICT  ,
-		SYNCHRONIZED , SYNTHETIC  , VARARGS
-	};
-	public static final int[] FIELD_MODIFIERS_ARRAY = new int[] {
-		PUBLIC       , PROTECTED  , PRIVATE  ,
-		FINAL        , STATIC     , SYNTHETIC,
-		TRANSIENT    , VOLATILE
-	};
-	public static final int[] PARAM_MODIFIERS_ARRAY = new int[] {
-		FINAL        , SYNTHETIC  , MANDATED
-	};
 	// Access checking
 	public static boolean isAbstract(int acc) {return(acc & ABSTRACT)!=0;}
 	public static boolean isAnnotation(int acc) {return(acc & ANNOTATION)!=0;}
@@ -101,15 +47,4 @@ public class Access {
 	public static boolean isTransient(int acc) {return(acc & TRANSIENT)!=0;}
 	public static boolean isVarargs(int acc) {return(acc & VARARGS)!=0;}
 	public static boolean isVolatile(int acc) {return(acc & VOLATILE)!=0;}
-	// Access creation
-	public static int createAccess(int... acArgs) {
-		int access = 0;
-		for (int acArg : acArgs) access |= acArg;
-		return access;
-	}
-	public static boolean hasAccess(int access, int... acArgs) {
-		for (int acArg : acArgs)
-			if ((access & acArg) == 0) return false;
-		return true;
-	}
 }

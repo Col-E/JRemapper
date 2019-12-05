@@ -36,11 +36,14 @@ public class Streams {
 
 	/**
 	 * Read InputStream into a string.
-	 * 
+	 *
 	 * @param input
-	 *            Stream to read from.
+	 * 		Stream to read from.
+	 *
 	 * @return UTF8 string.
+	 *
 	 * @throws IOException
+	 * 		When the stream could not be read.
 	 */
 	public static String toString(final InputStream input) throws IOException {
 		return new String(from(input), StandardCharsets.UTF_8);

@@ -203,12 +203,7 @@ public enum Hierarchy {
 		}
 		// For every NameType/Group add to the main group-map.
 		for (Entry<NameType, MGroup> e : typeGroups.entrySet()) {
-			Set<MGroup> groups = groupMap.get(e.getKey().toString());
-			if (groups == null) {
-				groups = new HashSet<>();
-				groupMap.put(e.getKey().toString(), groups);
-			}
-			groups.add(e.getValue());
+			groupMap.computeIfAbsent(e.getKey().toString(), k -> new HashSet<>()).add(e.getValue());
 		}
 	}
 
