@@ -98,8 +98,14 @@ public class MDec extends AbstractDec<MMap> {
 
 	@Override
 	public String toString() {
-		String nameType = isMethod ? name + desc : desc + " " + name;
-		return nameType + (isRenamed() ? "(" + map() + ")" : "");
+		try {
+			String nameType = isMethod ? name + desc : desc + " " + name;
+			return nameType + (isRenamed() ? "(" + map() + ")" : "");
+		} catch(NullPointerException npe)
+		{
+			npe.printStackTrace();
+			return "FUCk";
+		}
 	}
 
 	@Override

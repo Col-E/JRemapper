@@ -12,6 +12,14 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import com.github.javaparser.*;
+import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
+import com.github.javaparser.symbolsolver.JavaSymbolSolver;
+import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
+import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
+import javassist.ByteArrayClassPath;
+import javassist.ClassPool;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 
@@ -19,17 +27,25 @@ import me.coley.jremapper.util.History;
 import me.coley.jremapper.util.Logging;
 import me.coley.jremapper.util.Streams;
 
+import static com.github.javaparser.symbolsolver.javassistmodel.JavassistFactory.toTypeDeclaration;
+
 /**
  * Jar content wrapper.
  * 
  * @author Matt
  */
-public class Input {
+public class Input implements TypeSolver {
 	private static Input CURRENT;
 	private final File jarFile;
 	public final Map<String, byte[]> rawNodeMap = new HashMap<>();
 	public final Map<String, byte[]> resourceMap = new HashMap<>();
 	public final History history = new History(this);
+	// JavaParser stuff
+	private final TypeSolver childSolver = new ReflectionTypeSolver();
+	private final ClassPool classPool = new ClassPool(false);
+	private ParserConfiguration config;
+	private TypeSolver parent;
+
 
 	/**
 	 * Create JarFile content maps.
@@ -42,6 +58,9 @@ public class Input {
 		updateCurrent();
 		this.jarFile = jarFile;
 		readArchive();
+		classPool.appendSystemPath();
+		rawNodeMap.forEach((k, v) ->
+				classPool.insertClassPath(new ByteArrayClassPath(k.replace("/", "."), v)));
 	}
 
 	/**
@@ -168,6 +187,49 @@ public class Input {
 			m.put(e.getKey(), cn);
 		}
 		return m;
+	}
+
+	/**
+	 * @return JavaParser config to assist in resolving symbols.
+	 */
+	public ParserConfiguration getSourceParseConfig() {
+		if (config == null)
+			updateSourceConfig();
+		return config;
+	}
+
+	/**
+	 * Creates a source config with a type resolver that can access all types in the workspace.
+	 */
+	public void updateSourceConfig() {
+		config = new ParserConfiguration().setSymbolResolver(new JavaSymbolSolver(this));
+	}
+
+	@Override
+	public TypeSolver getParent() {
+		return this.parent;
+	}
+
+	@Override
+	public void setParent(TypeSolver parent) {
+		this.parent = parent;
+	}
+
+	@Override
+	public SymbolReference<ResolvedReferenceTypeDeclaration> tryToSolveType(String name) {
+		try {
+			String internal = name.replace(".", "/");
+			if(hasRawClass(internal)) {
+				InputStream is = new ByteArrayInputStream(getRawClass(internal));
+				ResolvedReferenceTypeDeclaration dec = toTypeDeclaration(classPool.makeClass(is), getRoot());
+				SymbolReference<ResolvedReferenceTypeDeclaration> solved = SymbolReference.solved(dec);
+				if (solved.isSolved())
+					return solved;
+			}
+		} catch(IOException ex) {
+			throw new IllegalStateException("Failed to resolve type: " + name, ex);
+		}
+		return childSolver.tryToSolveType(name);
 	}
 
 	/**

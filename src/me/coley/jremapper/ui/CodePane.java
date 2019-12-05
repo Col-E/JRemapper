@@ -4,6 +4,11 @@ import java.awt.Toolkit;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
+
+import com.github.javaparser.*;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
 import javafx.event.EventHandler;
 import javafx.geometry.Side;
 import javafx.scene.control.Label;
@@ -33,11 +38,6 @@ import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxmisc.richtext.model.TwoDimensional.Bias;
 import org.fxmisc.richtext.model.TwoDimensional.Position;
-import com.github.javaparser.*;
-import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.FieldDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
-
 import me.coley.event.Bus;
 import me.coley.jremapper.asm.Input;
 import me.coley.jremapper.event.OpenCodeEvent;
@@ -116,8 +116,7 @@ public class CodePane extends BorderPane {
 		this.input = input;
 		this.path = path;
 		this.previous = input.history.pop();
-		String decompile = decompile();
-		setupCode(decompile);
+		setupCode();
 		setupSearch();
 		setupTheRest();
 	}
@@ -128,18 +127,18 @@ public class CodePane extends BorderPane {
 
 	/**
 	 * Set the properties of the {@link #code CodeArea}.
-	 * 
-	 * @param decompile
-	 *            Decompiled java code.
 	 */
-	private void setupCode(String decompile) {
+	private void setupCode() {
 		// Only allow navigation.
 		code.setEditable(false);
 		code.setShowCaret(CaretVisibility.ON);
 		// Regenerate styles when the text is updated.
-		code.richChanges().filter(ch -> !ch.getInserted().equals(ch.getRemoved())).subscribe(change -> {
-			updateStyleAndRegions();
-		});
+		code.richChanges()
+				.filter(ch -> !ch.isPlainTextIdentity())
+				.filter(ch -> !ch.getInserted().equals(ch.getRemoved()))
+				.filter(ch -> ch.getPosition() != 0 || ch.getNetLength() >= code.getLength() - 1)
+				.subscribe(change -> updateStyleAndRegions()
+		);
 		// Update selected classes/members when the caret moves.
 		code.caretPositionProperty().addListener((obs, old, cur) -> {
 			if (regions == null) {
@@ -279,6 +278,8 @@ public class CodePane extends BorderPane {
 			name.setText(c.getFullName());
 			name.setEditable(false);
 		}
+		if (c.isLocked())
+			name.setDisable(true);
 		info.add(name, 1, 0);
 		name.addEventHandler(KeyEvent.KEY_PRESSED, (KeyEvent e) -> {
 			if (KeyCode.ENTER == e.getCode()) {
@@ -322,11 +323,15 @@ public class CodePane extends BorderPane {
 		});
 		// Member
 		TextField name = new TextField();
-		if (m.hasMappings()) {
+		if (m.hasMappings() && !c.isLocked()) {
 			name.setText(m.map().getCurrentName());
 		} else {
 			// Failed mapping lookup
 			name.setText(m.getName());
+			name.setDisable(true);
+		}
+		if(c.isLocked()) {
+			owner.setDisable(true);
 			name.setDisable(true);
 		}
 		TextField desc = new TextField(m.getDesc());
@@ -358,15 +363,10 @@ public class CodePane extends BorderPane {
 	 * Regenerate styles for the current code-area text.
 	 */
 	private void updateStyleAndRegions() {
-		// This event gets fired twice, this prevents multiple executions.
-		// This may look redundant, but if you don't believe me, fiddle with it.
-		pass++;
-		if (pass == 1) {
-			String text = code.getText();
-			code.setStyleSpans(0, computeStyle(text));
-			setupRegions(text);
-			pass = 0;
-		}
+		String text = code.getText();
+		code.setStyleSpans(0, computeStyle(text));
+		setupRegions(text);
+		pass = 0;
 	}
 
 	/**
@@ -440,8 +440,7 @@ public class CodePane extends BorderPane {
 	 *            Decompiled java code.
 	 */
 	private void setupRegions(String decompile) {
-		ParserConfiguration configuration = new ParserConfiguration();
-		JavaParser parser = new JavaParser(configuration);
+		JavaParser parser = new JavaParser(input.getSourceParseConfig());
 		ParseResult<CompilationUnit> result = parser.parse(ParseStart.COMPILATION_UNIT, Providers.provider(decompile));
 		if (!result.isSuccessful()) {
 			Logging.error("Parse fail!");
@@ -475,16 +474,32 @@ public class CodePane extends BorderPane {
 		// Decompile
 		driver.analyse(Collections.singletonList(path));
 		String decompilation = sink.getDecompilation();
-		if (decompilation.startsWith("/*\n" + " * Decompiled with CFR.\n" + " */"))
-			decompilation = decompilation.substring(decompilation.indexOf("*/") + 3);
-		// JavaParser does NOT like inline comments like this.
-		decompilation = decompilation.replace("/* synthetic */ ", "");
-		decompilation = decompilation.replace("/* bridge */ ", "");
-		decompilation = decompilation.replace("/* enum */ ", "");
-		// and some extra hacky bullshit JavaParser doesn't like
-		decompilation = decompilation.replace(".$SwitchMap$", "");
-		// <clinit> with modifiers
-		decompilation = decompilation.replace("public static {", "static {");
+		// Fix decompilation text
+		{
+			// Get rid of header comment
+			if(decompilation.startsWith("/*\n" + " * Decompiled with CFR.\n" + " */"))
+				decompilation = decompilation.substring(decompilation.indexOf("*/") + 3);
+			// JavaParser does NOT like inline comments like this.
+			decompilation = decompilation.replace("/* synthetic */ ", "");
+			decompilation = decompilation.replace("/* bridge */ ", "");
+			decompilation = decompilation.replace("/* enum */ ", "");
+			// and some extra hacky bullshit JavaParser doesn't like
+			decompilation = decompilation.replace(".$SwitchMap$", "");
+			// <clinit> with modifiers
+			decompilation = decompilation.replace("public static {", "static {");
+			// Fix inner class names being busted
+			String simple = path.contains("/") ? path.substring(path.lastIndexOf('/') + 1) : path;
+			if(simple.contains("$")) {
+				// They have "." instead of "$"
+				decompilation = decompilation.replace(simple.replace("$", "."), simple);
+				// Inners decompiled as top-level can't have static qualifier
+				String startText = decompilation.substring(0, decompilation.indexOf(simple));
+				if(startText.contains("static final class") || startText.contains("static class")) {
+					decompilation = decompilation.replace(startText, startText.replace("static final class", "final class"));
+					decompilation = decompilation.replace(startText, startText.replace("static class", "class"));
+				}
+			}
+		}
 		return decompilation;
 	}
 
@@ -500,13 +515,10 @@ public class CodePane extends BorderPane {
 			public void run() {
 				try {
 					Thread.sleep(500);
-					Threads.runFx(new Runnable() {
-						@Override
-						public void run() {
-							try {
-								textField.requestFocus();
-							} catch (Exception e) {}
-						}
+					Threads.runFx(() -> {
+						try {
+							textField.requestFocus();
+						} catch (Exception e) {}
 					});
 				} catch (Exception e) {}
 			}
@@ -661,61 +673,20 @@ public class CodePane extends BorderPane {
 	 *
 	 */
 	public static class CFROpts {
-		public static boolean aexAgg = true;
-		public static boolean allowCorrecting = true;
-		public static boolean arrayIter = true;
-		public static boolean collectionIter = true;
 		public static boolean commentMonitors = false;
 		public static boolean comments = false;
-		public static boolean decodeEnumSwitch = true;
-		public static boolean decodeFinally = true;
-		public static boolean decodeLambdas = true;
-		public static boolean decodeStringSwitch = true;
 		public static boolean dumpClasspath = false;
-		public static boolean eclipse = true;
-		public static boolean elidescala = true;
-		public static boolean tryresources = true;
-		public static boolean forceCondPropagate = true;
-		public static boolean forceExceptionPrune = false;
-		public static boolean forceReturningIfs = true;
-		public static boolean forceTopSort = true;
 		public static boolean forceTopSortAggress = true;
-		public static boolean forLoopAggCapture = false;
-		public static boolean hideBridgeMethods = false;
+		public static boolean hideBridgeMethods = true;
 		public static boolean hideLangImports = false;
-		public static boolean hideLongStrings = false;
-		public static boolean hideUTF = true;
-		public static boolean innerclasses = false;
-		public static boolean skipbatchinnerclasses = true;
-		public static boolean j14ClassObj = false;
-		public static boolean labelledBlocks = true;
-		public static boolean lenient = true;
-		public static boolean liftConstructorInit = true;
+		public static boolean hideLongStrings = true;
 		public static boolean override = true;
-		public static boolean pullCodeCase = false;
-		public static boolean recover = true;
-		public static boolean recoverTypeClash = true;
-		public static boolean recoverTypeHints = true;
-		public static int recpass = 0;
-		public static boolean removeBadGenerics = true;
-		public static boolean removeBoilerPlate = true;
-		public static boolean removeDeadMethods = true;
-		public static boolean removeInnerClassSynthetics = true;
 		public static boolean renameDupMembers = false;
 		public static boolean renameEnumIdents = true;
 		public static boolean renameIllegalIdents = false;
 		public static boolean renameSmallMembers = false;
-		public static boolean showInferrable = true;
-		public static int showOps = 0;
 		public static boolean showVersion = false;
 		public static boolean silent = true;
-		public static boolean staticInitReturn = false;
-		public static boolean stringBuffer = false;
-		public static boolean stringBuilder = true;
-		public static boolean sugarAsserts = true;
-		public static boolean sugarBoxing = true;
-		public static boolean sugarEnums = true;
-		public static boolean tidyMonitors = true;
 		public static boolean useNameTable = true;
 
 		/**

@@ -57,14 +57,11 @@ public abstract class AbstractDec<M extends AbstractMapping> {
 	 * @return {@code true} if this declaration is remapped.
 	 */
 	public boolean isRenamed() {
-		if (mapping == null && mappingStatus == Troolean.NEITHER) {
-			if (!hasMappings()) {
-				throwMappingFailure();
-			}
-		} else if (mappingStatus == Troolean.FALSE) {
+		if (mappingStatus == Troolean.FALSE)
 			return false;
-		}
-		return mapping.isRenamed();
+		if (mapping == null && mappingStatus == Troolean.NEITHER && !hasMappings())
+			throwMappingFailure();
+		return mapping != null && mapping.isRenamed();
 	}
 
 	/**

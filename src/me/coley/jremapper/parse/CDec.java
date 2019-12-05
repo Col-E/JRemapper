@@ -1,9 +1,6 @@
 package me.coley.jremapper.parse;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import me.coley.jremapper.mapping.CMap;
 import me.coley.jremapper.mapping.Mappings;
@@ -18,6 +15,7 @@ public class CDec extends AbstractDec<CMap> {
 	private final String full;
 	private final String pack;
 	private final String simple;
+	private boolean locked;
 
 	/**
 	 * @param name
@@ -36,10 +34,26 @@ public class CDec extends AbstractDec<CMap> {
 	 * @return Declaration of class.
 	 */
 	public static CDec fromClass(String name) {
-		if (name.contains(".")) {
-			name = name.replace(".", "/");
-		}
+		if (name.contains("."))
+			name = name.replace('.', '/');
 		return new CDec(name);
+	}
+
+	/**
+	 * @return {@code true} if class should not be renamed.
+	 */
+	public boolean isLocked() {
+		return locked;
+	}
+
+	/**
+	 * @param locked
+	 *        {@code true} if class should not be renamed.
+	 */
+	public void setLocked(boolean locked) {
+		this.locked = locked;
+		if (locked)
+			lock();
 	}
 
 	/**
@@ -101,6 +115,28 @@ public class CDec extends AbstractDec<CMap> {
 	 */
 	private String memberKey(MDec member) {
 		return memberKey(member.getName(), member.getDesc());
+	}
+
+	/**
+	 * @return {@code true} if all member names are unique.
+	 */
+	public boolean uniqueName(String name) {
+		return members.values().stream()
+				.map(MDec::getName).filter(s -> s.equals(name)).count() == 1;
+	}
+
+	/**
+	 * It is assumped {@link #uniqueName(String)} is {@code true}.
+	 *
+	 * @param name
+	 * 		Name of member.
+	 *
+	 * @return Member by name.
+	 */
+	public Optional<MDec> getByName(String name) {
+		return members.values().stream()
+				.filter(m -> name.equals(m.getName()))
+				.findFirst();
 	}
 
 	/**
