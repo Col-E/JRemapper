@@ -1,24 +1,17 @@
 package me.coley.jremapper.parse;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import com.github.javaparser.Position;
 import com.github.javaparser.ast.*;
-import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
 
 import com.github.javaparser.resolution.Resolvable;
-import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.*;
 import com.github.javaparser.resolution.types.*;
-import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserFieldDeclaration;
-import com.github.javaparser.symbolsolver.javassistmodel.JavassistMethodDeclaration;
-import com.github.javaparser.symbolsolver.reflectionmodel.ReflectionMethodDeclaration;
-import javassist.CtMethod;
 import me.coley.jremapper.asm.Input;
 import me.coley.jremapper.util.*;
 import org.objectweb.asm.ClassReader;
