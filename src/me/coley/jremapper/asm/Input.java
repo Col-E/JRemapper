@@ -21,6 +21,7 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeS
 import javassist.ByteArrayClassPath;
 import javassist.ClassPool;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 
 import me.coley.jremapper.util.History;
@@ -111,9 +112,18 @@ public class Input implements TypeSolver {
 			byte[] value = Streams.from(is);
 			ClassReader cr = new ClassReader(value);
 			String className = cr.getClassName();
+			// Add missing debug information if needed
+			ClassWriter cw = new ClassWriter(0);
+			VariableFixer fixer = new VariableFixer();
+			cr.accept(fixer, 0);
+			fixer.accept(cw);
+			if (fixer.isDirty())
+				value = cw.toByteArray();
+			// Put value in map
 			rawNodeMap.put(className, value);
 		} catch (Exception e) {
 			Logging.error("Could not parse class: " + name);
+			e.printStackTrace();
 		}
 	}
 
@@ -185,7 +195,11 @@ public class Input implements TypeSolver {
 			byte[] bs = e.getValue();
 			ClassReader cr = new ClassReader(new ByteArrayInputStream(bs));
 			ClassNode cn = new ClassNode();
-			cr.accept(cn, ClassReader.SKIP_CODE);
+			try {
+				cr.accept(cn, ClassReader.SKIP_CODE);
+			} catch(Exception ex) {
+				ex.printStackTrace();
+			}
 			m.put(e.getKey(), cn);
 		}
 		return m;

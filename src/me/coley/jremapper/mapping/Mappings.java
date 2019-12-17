@@ -9,12 +9,8 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.FieldVisitor;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
+import me.coley.jremapper.asm.*;
+import org.objectweb.asm.*;
 import org.objectweb.asm.commons.ClassRemapper;
 
 import com.eclipsesource.json.Json;
@@ -24,8 +20,6 @@ import com.eclipsesource.json.JsonValue;
 
 import me.coley.event.Bus;
 import me.coley.event.Listener;
-import me.coley.jremapper.asm.Input;
-import me.coley.jremapper.asm.RemapperImpl;
 import me.coley.jremapper.event.NewInputEvent;
 import me.coley.jremapper.util.Files;
 import me.coley.jremapper.util.Logging;
@@ -115,7 +109,7 @@ public enum Mappings {
 			RemapperImpl mapper = RemapperImpl.create();
 			ClassReader cr = new ClassReader(raw);
 			ClassWriter cw = new ClassWriter(0);
-			ClassRemapper adapter = new ClassRemapper(cw, mapper);
+			ClassRemapper adapter = new ClassRemapperExt(cw, mapper, cr.getClassName());
 			cr.accept(adapter, 0);
 			return cw.toByteArray();
 		} catch (Exception e) {
@@ -163,8 +157,15 @@ public enum Mappings {
 				@Override
 				public MethodVisitor visitMethod(int access, String name, String descriptor, String signature,
 						String[] exceptions) {
-					cm.addMember(name, descriptor);
-					return null;
+					MMap mm = cm.addMember(name, descriptor);
+					return new MethodVisitor(Opcodes.ASM7) {
+						@Override
+						public void visitLocalVariable(String name, String desc, String s, Label start, Label end, int index) {
+							if (index == 0 && "this".equals(name))
+								return;
+							mm.addVariable(name, desc);
+						}
+					};
 				}
 
 			};
@@ -199,8 +200,10 @@ public enum Mappings {
 							cm.setCurrentName(out);
 						}
 					}
-					JsonArray members = mcc.get("members").asArray();
-					members.forEach(mm -> {
+					JsonValue members = mcc.get("members");
+					if (members == null)
+						return;
+					members.asArray().forEach(mm -> {
 						JsonObject mmm = mm.asObject();
 						String nameIn = mmm.getString("name-in", null);
 						String descIn = mmm.getString("desc-in", null);
@@ -211,8 +214,25 @@ public enum Mappings {
 								if (nameOut != null) {
 									a.setCurrentName(nameOut);
 								}
+								JsonValue variables = mmm.get("variables");
+								if (variables == null)
+									return;
+								variables.asArray().forEach(vm -> {
+									JsonObject mmmm = vm.asObject();
+									String vnameIn = mmmm.getString("name-in", null);
+									String vdescIn = mmmm.getString("desc-in", null);
+									if(vnameIn != null && vdescIn != null && a != null) {
+										VMap varMap = a.getVariableByName(vnameIn);
+										String vnameOut = mmmm.getString("name-out", null);
+										if(vnameOut != null) {
+											varMap.setCurrentName(vnameOut);
+										}
+									}
+								});
 							}
+
 						}
+
 					});
 				});
 			}
@@ -228,17 +248,33 @@ public enum Mappings {
 				continue;
 			JsonObject mapClass = Json.object();
 			mapClass.add("name-in", cm.getOriginalName());
-			mapClass.add("name-out", cm.getCurrentName());
+			if (cm.isRenamed())
+				mapClass.add("name-out", cm.getCurrentName());
 			JsonArray members = Json.array();
 			for (MMap mm : cm.getMembers()) {
 				if (!mm.isDirty())
 					continue;
 				JsonObject mapMember = Json.object();
 				mapMember.add("name-in", mm.getOriginalName());
-				mapMember.add("name-out", mm.getCurrentName());
+				if (mm.isRenamed())
+					mapMember.add("name-out", mm.getCurrentName());
 				mapMember.add("desc-in", mm.getOriginalDesc());
 				mapMember.add("desc-out", mm.getCurrentDesc());
 				members.add(mapMember);
+				JsonArray variables = Json.array();
+				for (VMap vm : mm.getVariables()){
+					if (!vm.isDirty())
+						continue;
+					JsonObject mapVariable = Json.object();
+					mapVariable.add("name-in", vm.getOriginalName());
+					if (vm.isRenamed())
+						mapVariable.add("name-out", vm.getCurrentName());
+					mapVariable.add("desc-in", vm.getOriginalDesc());
+					mapVariable.add("desc-out", vm.getCurrentDesc());
+					variables.add(mapVariable);
+				}
+				if (variables.size() > 0)
+					mapMember.add("variables", variables);
 			}
 			if (members.size() > 0)
 				mapClass.add("members", members);

@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import com.github.javaparser.Position;
 import com.github.javaparser.ast.*;
+import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.*;
 
 import com.github.javaparser.resolution.Resolvable;
@@ -91,6 +92,45 @@ public class RegionMapper {
 	 */
 	public MDec getMemberFromPosition(int line, int column) {
 		Node node = getNodeAt(line, column);
+		return resolveMethod(node);
+	}
+
+	/**
+	 * @param line
+	 *            Caret line in editor.
+	 * @param column
+	 *            Caret column in editor.
+	 * @return VDec at position. May be {@code null}.
+	 */
+	public VDec getVariableFromPosition(int line, int column) {
+		Node node = getSimpleNodeAt(line, column);
+		if (node instanceof SimpleName) {
+			String name = ((SimpleName) node).asString();
+			while (!(node instanceof MethodDeclaration)){
+				Optional<Node> parent = node.getParentNode();
+				if (!parent.isPresent())
+					break;
+				node = parent.get();
+			}
+			MDec owner = resolveMethod(node);
+			if (owner != null && owner.isMethod()) {
+				Optional<VDec> v = owner.getVariableByName(name);
+				if (v.isPresent())
+					return v.get();
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Resolve a member declaration from the given AST node.
+	 *
+	 * @param node
+	 * 		AST node.
+	 *
+	 * @return Member declaration wrapper.
+	 */
+	private MDec resolveMethod(Node node) {
 		if(!(node instanceof Resolvable))
 			return null;
 		// Resolve node to some declaration type
@@ -159,7 +199,7 @@ public class RegionMapper {
 		if (!input.hasRawClass(dec.getFullName()))
 			dec.setLocked(true);
 		if(cr != null)
-			cr.accept(new DecBuilder(dec, input), 0);
+			cr.accept(new DecBuilder(dec, input), ClassReader.SKIP_FRAMES);
 		else
 			Logging.info("Failed class lookup for: " + dec.getFullName());
 		return dec;
@@ -195,13 +235,28 @@ public class RegionMapper {
 	 * @return JavaParser AST node at the given position in the source code.
 	 */
 	private Node getNodeAt(int line, int column) {
-		return getNodeAt(line, column, cu.findRootNode());
+		return getNodeAt(line, column, cu.findRootNode(), false);
 	}
 
-	private Node getNodeAt(int line, int column, Node root) {
+	/**
+	 *
+	 * Same as {@link #getNodeAt(int, int)} but allows returning {@link SimpleName} nodes.
+	 *
+	 * @param line
+	 * 		Cursor line.
+	 * @param column
+	 * 		Cursor column.
+	 *
+	 * @return JavaParser AST node at the given position in the source code.
+	 */
+	private Node getSimpleNodeAt(int line, int column) {
+		return getNodeAt(line, column, cu.findRootNode(), true);
+	}
+
+	private Node getNodeAt(int line, int column, Node root, boolean allowSimple) {
 		// We want to know more about this type, don't resolve down to the lowest AST
 		// type... the parent has more data and is essentially just a wrapper around SimpleName.
-		if (root instanceof SimpleName)
+		if (!allowSimple && root instanceof SimpleName)
 			return null;
 		// Verify the node range can be accessed
 		if (!root.getBegin().isPresent() || !root.getEnd().isPresent())
@@ -215,7 +270,7 @@ public class RegionMapper {
 			bounds = false;
 		// Iterate over children, return non-null child
 		for (Node child : root.getChildNodes()) {
-			Node ret = getNodeAt(line, column, child);
+			Node ret = getNodeAt(line, column, child, allowSimple);
 			if (ret != null)
 				return ret;
 		}

@@ -101,10 +101,8 @@ public class MDec extends AbstractDec<MMap> {
 		try {
 			String nameType = isMethod ? name + desc : desc + " " + name;
 			return nameType + (isRenamed() ? "(" + map() + ")" : "");
-		} catch(NullPointerException npe)
-		{
-			npe.printStackTrace();
-			return "FUCk";
+		} catch(NullPointerException npe) {
+			return "ERROR_TS";
 		}
 	}
 
@@ -137,7 +135,7 @@ public class MDec extends AbstractDec<MMap> {
 	 * @return First variable matching the given name.
 	 */
 	public Optional<VDec> getVariableByName(String name) {
-		return variables.values().stream().filter(v -> v.getName().equals(name)).findFirst();
+		return variables.values().stream().filter(v -> v.hasMappings() && v.map().getCurrentName().equals(name)).findFirst();
 	}
 
 	/**

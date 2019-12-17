@@ -159,6 +159,12 @@ public class CodePane extends BorderPane {
 				updateSelection(m);
 				return;
 			}
+			VDec v = regions.getVariableFromPosition(line, column);
+			if (v != null) {
+				this.pos = pos;
+				updateSelection(v);
+				return;
+			}
 			resetSelection();
 		});
 		// Setup code-lines.
@@ -345,7 +351,33 @@ public class CodePane extends BorderPane {
 				updateStyleAndRegions();
 			}
 		});
+	}
 
+	/**
+	 * Update the current selected variable.
+	 *
+	 * @param v
+	 *            The newly selected variable.
+	 */
+	private void updateSelection(VDec v) {
+		selectedDec = v;
+		info.getChildren().clear();
+		// Member
+		TextField name = new TextField(v.map().getCurrentName());
+		TextField desc = new TextField(v.getDesc());
+		desc.setDisable(true);
+		info.add(new Label("Variable name"), 0, 1);
+		info.add(name, 1, 1);
+		info.add(new Label("Variable desc"), 0, 2);
+		info.add(desc, 1, 2);
+		name.addEventHandler(KeyEvent.KEY_PRESSED, (KeyEvent e) -> {
+			if (KeyCode.ENTER == e.getCode()) {
+				v.map().setCurrentName(name.getText());
+				refreshCode();
+				resetSelection();
+				updateStyleAndRegions();
+			}
+		});
 	}
 
 	/**

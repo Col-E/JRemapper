@@ -62,7 +62,7 @@ public class ParserTypeUtil {
 			if (type instanceof JavaParserFieldDeclaration) {
 				desc = ParserTypeUtil.getDescriptor(((JavaParserFieldDeclaration) type).getWrappedNode().getCommonType());
 			}
-		}
+		} catch(UnsupportedOperationException e) {}
 		return desc;
 	}
 

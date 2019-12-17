@@ -2,7 +2,11 @@ package me.coley.jremapper.parse;
 
 import me.coley.jremapper.asm.Input;
 import org.objectweb.asm.*;
+import org.objectweb.asm.tree.*;
 
+/**
+ * Class visitor to build {@link CDec} instances.
+ */
 public class DecBuilder extends ClassVisitor {
 	private final CDec dec;
 	private final Input input;
@@ -15,21 +19,21 @@ public class DecBuilder extends ClassVisitor {
 
 	@Override
 	public FieldVisitor visitField(int acc, String name, String desc, String s, Object v) {
-		return new DecFieldVisitor(name, desc);
+		return new DecFieldBuilder(name, desc);
 	}
 
 	@Override
 	public MethodVisitor visitMethod(int acc, String name, String desc, String s, String[] e) {
-		return new DecMethodVisitor(name, desc);
+		return new DecMethodBuilder(acc, name, desc);
 	}
 
 	/**
-	 * Field visitor.
+	 * Field visitor to build {@link MDec} instances for fields.
 	 */
-	private class DecFieldVisitor extends FieldVisitor {
+	private class DecFieldBuilder extends FieldVisitor {
 		private final MDec mdec;
 
-		public DecFieldVisitor(String name, String desc) {
+		public DecFieldBuilder(String name, String desc) {
 			super(Opcodes.ASM7);
 			mdec = MDec.fromMember(dec, name, desc);
 			if (dec.isLocked())
@@ -43,14 +47,12 @@ public class DecBuilder extends ClassVisitor {
 	}
 
 	/**
-	 * Method visitor.
+	 * Method visitor tobuild {@link MDec} instances for methods and check for local existence.
 	 */
-	private class DecMethodVisitor extends MethodVisitor {
+	private class DecMethodBuilder extends MethodNode {
 		private final MDec mdec;
-		private boolean visitedLocals;
-		private boolean hasLocals;
 
-		public DecMethodVisitor(String name, String desc) {
+		public DecMethodBuilder(int acc, String name, String desc) {
 			super(Opcodes.ASM7);
 			mdec = MDec.fromMember(dec, name, desc);
 			if (dec.isLocked())
@@ -59,22 +61,18 @@ public class DecBuilder extends ClassVisitor {
 
 		@Override
 		public void visitLocalVariable(String name, String desc, String s, Label b, Label e, int i) {
+			super.visitLocalVariable(name, desc, s, b, e, i);
 			mdec.addVariable(VDec.fromVariable(mdec, name, desc));
-			visitedLocals = true;
 		}
 
 		@Override
 		public void visitVarInsn(int opcode, int var) {
-			hasLocals = true;
+			super.visitVarInsn(opcode, var);
 		}
 
 		@Override
 		public void visitEnd() {
 			dec.addMember(mdec);
-			// Check if local debug info was not visited (doesn't exist) but there are locals
-			if (!visitedLocals && hasLocals) {
-				// TODO: Try to determine variable types
-			}
 		}
 	}
 }

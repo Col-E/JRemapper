@@ -1,17 +1,18 @@
 package me.coley.jremapper.parse;
 
 import java.util.Objects;
+import java.util.Optional;
 
+import me.coley.jremapper.mapping.*;
 import org.objectweb.asm.Type;
 
-import me.coley.jremapper.mapping.CMap;
-import me.coley.jremapper.mapping.Mappings;
-
-public class VDec extends AbstractDec<CMap> {
+public class VDec extends AbstractDec<VMap> {
 	private final String name;
 	private final String desc;
+	private final MDec owner;
 
 	private VDec(MDec owner, String name, String desc) {
+		this.owner = owner;
 		this.name = name;
 		this.desc = desc;
 		if (name == null) {
@@ -24,6 +25,13 @@ public class VDec extends AbstractDec<CMap> {
 
 	public static VDec fromVariable(MDec owner, String name, String desc) {
 		return new VDec(owner, name, desc);
+	}
+
+	/**
+	 * @return Host member.
+	 */
+	public MDec declaring() {
+		return owner;
 	}
 
 	/**
@@ -41,33 +49,33 @@ public class VDec extends AbstractDec<CMap> {
 	}
 
 	/**
-	 * @return Internal name of the type.
-	 */
-	public String getInternalType() {
-		return Type.getType(desc).getClassName().replace(".", "/");
-	}
-
-	/**
-	 * @return Mapping of this class. Will be {@code null} if this class has been
+	 * @return Mapping of this variable. Will be {@code null} if this variable has been
 	 *         renamed.
 	 */
 	@Override
-	protected CMap lookup() {
-		return Mappings.INSTANCE.getClassMapping(getInternalType());
+	protected VMap lookup() {
+		MMap method = declaring().lookup();
+		Optional<VMap> opt = method.getVariables().stream()
+				.filter(v -> name.equals(v.getOriginalName())).findFirst();
+		return opt.orElse(null);
 	}
 
 	/**
-	 * @return Mapping of this class. Will discover the class even if it has been
-	 *         renamed.
+	 * Used when the declaring method is renamed.
+	 *
+	 * @return Mapping of this variable.
 	 */
 	@Override
-	protected CMap lookupReverse() {
-		return Mappings.INSTANCE.getClassReverseMapping(getInternalType());
+	protected VMap lookupReverse() {
+		MMap method = declaring().lookupReverse();
+		Optional<VMap> opt = method.getVariables().stream()
+				.filter(v -> name.equals(v.getOriginalName())).findFirst();
+		return opt.orElse(null);
 	}
 
 	@Override
 	protected void throwMappingFailure() {
-		throw new RuntimeException("No mappings for the class: '" + getInternalType() + "'");
+		throw new RuntimeException("No mappings for the variable: '" + getName() + "'");
 	}
 
 	@Override

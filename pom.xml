@@ -12,7 +12,7 @@
 	<properties>
 		<asm.version>7.2</asm.version>
 		<cfr.version>148</cfr.version>
-		<jp.version>3.15.6</jp.version>
+		<jp.version>3.15.7</jp.version>
 	</properties>
 	<!-- Additional repo's -->
 	<repositories>

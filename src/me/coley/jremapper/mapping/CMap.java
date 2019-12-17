@@ -25,9 +25,11 @@ public class CMap extends AbstractMapping {
 				.findFirst().orElse(null);
 	}
 
-	public void addMember(String name, String desc) {
+	public MMap addMember(String name, String desc) {
 		String key = key(name, desc);
-		members.put(key, new MMap(this, name, desc));
+		MMap map = new MMap(this, name, desc);
+		members.put(key, map);
+		return map;
 	}
 
 	public boolean hasRenamedMembers() {
