@@ -4,6 +4,7 @@ import java.awt.Toolkit;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.github.javaparser.*;
 import com.github.javaparser.ast.CompilationUnit;
@@ -44,6 +45,7 @@ import me.coley.jremapper.event.OpenCodeEvent;
 import me.coley.jremapper.mapping.Mappings;
 import me.coley.jremapper.parse.*;
 import me.coley.jremapper.util.*;
+import org.objectweb.asm.ClassReader;
 
 /**
  * Code pane with search bar. Syntax-highlighting powered by regex.
@@ -475,7 +477,7 @@ public class CodePane extends BorderPane {
 		if (!result.isSuccessful()) {
 			Logging.error("Parse fail!");
 			for (Problem problem : result.getProblems()) {
-				Logging.error("\t" + problem.toString());
+				Logging.error("\t" + problem.getMessage());
 			}
 		}
 		// Use generated AST to apply mappings to ranges in the code.
@@ -493,13 +495,14 @@ public class CodePane extends BorderPane {
 	 */
 	private String decompile() {
 		CFRResourceLookup lookupHelper = new CFRResourceLookup();
-		Map<String, String> options = CFROpts.toStringMap();
+		Map<String, String> options = new HashMap<>();
+		options.put("usenametable", "true");
 		SinkFactory sink = new SinkFactory();
 		// Setup driver
 		CfrDriver driver = new CfrDriver.Builder()
+				.withOptions(options)
 				.withClassFileSource(new CFRSourceImpl(lookupHelper))
 				.withOutputSink(sink)
-				.withOptions(options)
 				.build();
 		// Decompile
 		driver.analyse(Collections.singletonList(path));
@@ -513,8 +516,6 @@ public class CodePane extends BorderPane {
 			decompilation = decompilation.replace("/* synthetic */ ", "");
 			decompilation = decompilation.replace("/* bridge */ ", "");
 			decompilation = decompilation.replace("/* enum */ ", "");
-			// and some extra hacky bullshit JavaParser doesn't like
-			decompilation = decompilation.replace(".$SwitchMap$", "");
 			// <clinit> with modifiers
 			decompilation = decompilation.replace("public static {", "static {");
 			// Fix inner class names being busted
@@ -621,7 +622,7 @@ public class CodePane extends BorderPane {
 
 		@Override
 		public Collection<String> addJar(String s) {
-			throw new UnsupportedOperationException("Return paths of all classfiles in jar.");
+			return Collections.emptyList();
 		}
 
 		@Override
@@ -648,8 +649,12 @@ public class CodePane extends BorderPane {
 				byte[] raw = input.getRawClass(path);
 				return Mappings.INSTANCE.intercept(raw);
 			} else {
-				// Logging.info("Decompile 'get' failed for '" + path + "'");
-				return null;
+				try {
+					return new ClassReader(path).b;
+				} catch(Exception ex) {
+					Logging.info("Decompile 'get' failed for '" + path + "'");
+					return null;
+				}
 			}
 		}
 	}
@@ -664,20 +669,22 @@ public class CodePane extends BorderPane {
 
 		@Override
 		public List<SinkClass> getSupportedSinks(SinkType sinkType, Collection<SinkClass> collection) {
-			return Collections.singletonList(SinkClass.STRING);
+			return Arrays.asList(SinkClass.values());
 		}
 
 		@Override
 		public <T> Sink<T> getSink(SinkType sinkType, SinkClass sinkClass) {
-			switch (sinkType) {
-			case EXCEPTION:
-				return sinkable -> Logging.error("CFR: " + sinkable);
-			case JAVA:
-				return sinkable -> decompile = sinkable.toString();
-			case PROGRESS:
-				return sinkable -> Logging.info("CFR: " + sinkable);
-			default:
-				break;
+			switch(sinkType) {
+				case JAVA:
+					return sinkable -> decompile = sinkable.toString();
+				case EXCEPTION:
+					return sinkable -> Logging.error("CFR: " + sinkable);
+				case PROGRESS:
+					return sinkable -> Logging.info("CFR: " + sinkable);
+				case SUMMARY:
+					return sinkable -> Logging.info("CFR: " + sinkable);
+				default:
+					break;
 			}
 			return ignore -> {};
 		}
@@ -686,46 +693,4 @@ public class CodePane extends BorderPane {
 			return decompile;
 		}
 	};
-
-	/**
-	 * CFR option map.
-	 * 
-	 * @author Matt
-	 *
-	 */
-	public static class CFROpts {
-		public static boolean commentMonitors = false;
-		public static boolean comments = false;
-		public static boolean dumpClasspath = false;
-		public static boolean forceTopSortAggress = true;
-		public static boolean hideBridgeMethods = true;
-		public static boolean hideLangImports = false;
-		public static boolean hideLongStrings = true;
-		public static boolean override = true;
-		public static boolean renameDupMembers = false;
-		public static boolean renameEnumIdents = true;
-		public static boolean renameIllegalIdents = false;
-		public static boolean renameSmallMembers = false;
-		public static boolean showVersion = false;
-		public static boolean silent = true;
-		public static boolean useNameTable = true;
-
-		/**
-		 * @return &lt;String, String(of boolean)&gt; map of the settings and their
-		 *         current status.
-		 */
-		public static Map<String, String> toStringMap() {
-			Map<String, String> options = new HashMap<>();
-			for (Field f : Reflect.fields(CFROpts.class)) {
-				try {
-					String name = f.getName().toLowerCase();
-					String text = String.valueOf(f.get(null));
-					options.put(name, text);
-				} catch (Exception e) {
-					Logging.error(e);
-				}
-			}
-			return options;
-		}
-	}
 }
