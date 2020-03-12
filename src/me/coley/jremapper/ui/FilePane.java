@@ -370,7 +370,7 @@ public class FilePane extends BorderPane {
 								tree.getSelectionModel().select(foundNode);
 								Threads.runFx(tree::requestFocus);
 								// display content of this file in CodePane
-								Bus.post(new ClassOpenEvent(currentName));
+								Bus.post(new ClassOpenEvent(fullPath));
 							}
 						}
 					}
