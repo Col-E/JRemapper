@@ -10,20 +10,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import com.eclipsesource.json.JsonValue;
 import com.eclipsesource.json.WriterConfig;
-import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.input.TransferMode;
+import javafx.scene.input.*;
 import javafx.scene.layout.BorderPane;
 import me.coley.event.Bus;
 import me.coley.event.Listener;
@@ -34,6 +31,7 @@ import me.coley.jremapper.mapping.Mappings;
 import me.coley.jremapper.util.Icons;
 import me.coley.jremapper.util.Logging;
 import me.coley.jremapper.util.Threads;
+import org.controlsfx.control.textfield.CustomTextField;
 
 /**
  * Pane displaying file-tree of loaded classes.
@@ -43,9 +41,12 @@ import me.coley.jremapper.util.Threads;
 public class FilePane extends BorderPane {
 	private final TreeView<String> tree = new TreeView<>();
 	private Input input;
+	private final CustomTextField fileSearch;
 
 	public FilePane() {
+		this.fileSearch = new CustomTextField();
 		Bus.subscribe(this);
+		setupFileSearch();
 		setCenter(tree);
 		// drag-drop support for inputs
 		tree.setOnDragOver(e -> {
@@ -341,6 +342,53 @@ public class FilePane extends BorderPane {
 		@Override
 		public int compareTo(String s) {
 			return getValue().compareTo(s);
+		}
+	}
+
+	/**
+	 * Setup the search-bar
+	 */
+	private void setupFileSearch() {
+		setBottom(fileSearch);
+		fileSearch.setLeft(new ImageView(Icons.FIND));
+		fileSearch.addEventHandler(KeyEvent.KEY_PRESSED, (KeyEvent e) -> {
+			if (tree.getRoot() != null && KeyCode.ENTER == e.getCode()) {
+				// search for a file by name(not full path) in the tree
+				treeTraversal(tree.getRoot(), treeItem -> {
+					if (treeItem != null) {
+						String fullPath = treeItem.fullPath;
+                        String currentName = fullPath;
+                        CMap map = Mappings.INSTANCE.getClassMapping(fullPath);
+                        if (map != null) {
+                            currentName = map.getCurrentName();
+                        }
+						if (currentName != null) {
+                            String searchText = fileSearch.getText().replaceAll("\\s", "");
+							if (trim(currentName).equalsIgnoreCase(searchText)) {
+								// display found file in tree
+								FileTreeItem foundNode = getNode(currentName);
+								tree.getSelectionModel().select(foundNode);
+								Threads.runFx(tree::requestFocus);
+								// display content of this file in CodePane
+								Bus.post(new ClassOpenEvent(fullPath));
+							}
+						}
+					}
+				});
+			}
+		});
+	}
+
+	/**
+	 * Recursive tree traversal
+	 *
+	 * @param node     - current tree node
+	 * @param consumer - consumer for FileTreeItem
+	 */
+	private void treeTraversal(TreeItem node, Consumer<FileTreeItem> consumer) {
+		consumer.accept((FileTreeItem) node);
+		for (Object child : node.getChildren()) {
+			treeTraversal((TreeItem) child, consumer);
 		}
 	}
 }
