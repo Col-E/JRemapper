@@ -48,7 +48,6 @@ public class FilePane extends BorderPane {
 		Bus.subscribe(this);
 		setupFileSearch();
 		setCenter(tree);
-		setBottom(fileSearch);
 		// drag-drop support for inputs
 		tree.setOnDragOver(e -> {
 			if (e.getGestureSource() != tree && e.getDragboard().hasFiles()) {
@@ -350,7 +349,7 @@ public class FilePane extends BorderPane {
 	 * Setup the search-bar
 	 */
 	private void setupFileSearch() {
-		setCenter(fileSearch);
+		setBottom(fileSearch);
 		fileSearch.setLeft(new ImageView(Icons.FIND));
 		fileSearch.addEventHandler(KeyEvent.KEY_PRESSED, (KeyEvent e) -> {
 			if (tree.getRoot() != null && KeyCode.ENTER == e.getCode()) {
