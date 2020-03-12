@@ -357,15 +357,20 @@ public class FilePane extends BorderPane {
 				treeTraversal(tree.getRoot(), treeItem -> {
 					if (treeItem != null) {
 						String fullPath = treeItem.fullPath;
-						if (fullPath != null) {
-							String searchText = fileSearch.getText().replaceAll(" ", "");
-							if (fullPath.substring(fullPath.lastIndexOf("/") + 1).equalsIgnoreCase(searchText)) {
+                        String currentName = fullPath;
+                        CMap map = Mappings.INSTANCE.getClassMapping(fullPath);
+                        if (map != null) {
+                            currentName = map.getCurrentName();
+                        }
+						if (currentName != null) {
+                            String searchText = fileSearch.getText().replaceAll("\\s", "");
+							if (trim(currentName).equalsIgnoreCase(searchText)) {
 								// display found file in tree
-								FileTreeItem foundNode = getNode(fullPath);
+								FileTreeItem foundNode = getNode(currentName);
 								tree.getSelectionModel().select(foundNode);
 								Threads.runFx(tree::requestFocus);
 								// display content of this file in CodePane
-								Bus.post(new ClassOpenEvent(fullPath));
+								Bus.post(new ClassOpenEvent(currentName));
 							}
 						}
 					}
